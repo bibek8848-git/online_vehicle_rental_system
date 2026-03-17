@@ -36,8 +36,34 @@ export default function AddVehicle() {
         setFormData(prev => ({ ...prev, images: [...prev.images, ''] }));
     };
 
+    const removeImageField = (index: number) => {
+        if (formData.images.length === 1) {
+            setFormData(prev => ({ ...prev, images: [''] }));
+            return;
+        }
+        const newImages = formData.images.filter((_, i) => i !== index);
+        setFormData(prev => ({ ...prev, images: newImages }));
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        // Basic validation
+        if (formData.images.some(img => img.trim() === '')) {
+            alert('Please provide valid image URLs or remove empty fields.');
+            return;
+        }
+
+        if (parseInt(formData.year.toString()) < 1900 || parseInt(formData.year.toString()) > new Date().getFullYear() + 1) {
+            alert('Please provide a valid year.');
+            return;
+        }
+
+        if (parseFloat(formData.price_per_day) <= 0) {
+            alert('Price per day must be greater than zero.');
+            return;
+        }
+
         setIsLoading(true);
 
         try {
@@ -108,12 +134,14 @@ export default function AddVehicle() {
                     <div className="space-y-4">
                         <Label>Vehicle Images (URLs)</Label>
                         {formData.images.map((img, index) => (
-                            <Input 
-                                key={index} 
-                                placeholder="https://example.com/image.jpg" 
-                                value={img} 
-                                onChange={(e) => handleImageChange(index, e.target.value)} 
-                            />
+                            <div key={index} className="flex gap-2">
+                                <Input 
+                                    placeholder="https://example.com/image.jpg" 
+                                    value={img} 
+                                    onChange={(e) => handleImageChange(index, e.target.value)} 
+                                />
+                                <Button type="button" variant="ghost" className="text-red-500" onClick={() => removeImageField(index)}>Remove</Button>
+                            </div>
                         ))}
                         <Button type="button" variant="outline" onClick={addImageField}>Add Another Image URL</Button>
                     </div>

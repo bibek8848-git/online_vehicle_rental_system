@@ -11,17 +11,21 @@ export async function POST(req: NextRequest) {
     if (!roleAuth.authorized) return roleAuth.errorResponse;
 
     try {
-        const { documentType, documentUrl } = await req.json();
+        const formData = await req.formData();
+        const documentType = formData.get('documentType') as string;
+        const file = formData.get('file') as File;
 
-        if (!documentType || !documentUrl) {
-            return NextResponse.json({ success: false, message: "Document type and URL are required" }, { status: 400 });
+        if (!documentType || !file) {
+            return NextResponse.json({ success: false, message: "Document type and file are required" }, { status: 400 });
         }
+
+        const buffer = Buffer.from(await file.arrayBuffer());
 
         // Insert document
         await pgPool.query(`
-            INSERT INTO kyc_documents (user_id, document_type, document_url, status)
+            INSERT INTO kyc_documents (user_id, document_type, document_data, status)
             VALUES ($1, $2, $3, 'PENDING')
-        `, [user.id, documentType, documentUrl]);
+        `, [user.id, documentType, buffer]);
 
         // Update user KYC status to PENDING if it wasn't already
         await pgPool.query(`
@@ -47,15 +51,30 @@ export async function GET(req: NextRequest) {
     if (!roleAuth.authorized) return roleAuth.errorResponse;
 
     try {
-        const documents = await pgPool.query('SELECT * FROM kyc_documents WHERE user_id = $1', [user.id]);
+        const documents = await pgPool.query('SELECT id, user_id, document_type, document_url, document_data, status, rejection_reason, created_at FROM kyc_documents WHERE user_id = $1', [user.id]);
         const userInfo = await pgPool.query('SELECT kyc_status, kyc_rejection_reason FROM users WHERE id = $1', [user.id]);
+
+        const processedDocuments = documents.rows.map(doc => {
+            if (doc.document_data) {
+                const base64 = doc.document_data.toString('base64');
+                // We don't know the exact mime type easily without storing it, 
+                // but we can default to image/jpeg or try to detect from common ones.
+                // For simplicity, let's use image/jpeg as a default or assume the user uploads images.
+                return {
+                    ...doc,
+                    document_url: `data:image/jpeg;base64,${base64}`,
+                    document_data: undefined // Don't send the buffer again
+                };
+            }
+            return doc;
+        });
 
         return NextResponse.json({
             success: true,
             data: {
                 status: userInfo.rows[0].kyc_status,
                 rejection_reason: userInfo.rows[0].kyc_rejection_reason,
-                documents: documents.rows
+                documents: processedDocuments
             }
         });
     } catch (error) {

@@ -107,7 +107,7 @@ export default function Header() {
                             </span>
                         </div>
                         {/* Avatar */}
-                        {user.avatar ? (
+                        {user.avatar && user.avatar.trim() !== '' ? (
                             <img
                                 src={user.avatar}
                                 alt="avatar"

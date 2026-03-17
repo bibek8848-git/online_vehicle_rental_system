@@ -12,9 +12,9 @@ export default function ProviderKYC() {
     const [isLoading, setIsLoading] = useState(true);
     const [isUploading, setIsUploading] = useState(false);
     const [formData, setFormData] = useState({
-        documentType: 'Business Registration',
-        documentUrl: ''
+        documentType: 'Business Registration'
     });
+    const [file, setFile] = useState<File | null>(null);
 
     useEffect(() => {
         fetchKYC();
@@ -39,22 +39,31 @@ export default function ProviderKYC() {
 
     const handleUpload = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!file) {
+            alert('Please select a file to upload.');
+            return;
+        }
         setIsUploading(true);
 
         try {
             const token = localStorage.getItem('token');
+            const dataForm = new FormData();
+            dataForm.append('documentType', formData.documentType);
+            dataForm.append('file', file);
+
             const res = await fetch('/api/provider/kyc', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify(formData)
+                body: dataForm
             });
             const data = await res.json();
             if (data.success) {
                 alert('Document uploaded successfully.');
-                setFormData({ ...formData, documentUrl: '' });
+                setFile(null);
+                const fileInput = document.getElementById('documentFile') as HTMLInputElement;
+                if (fileInput) fileInput.value = '';
                 fetchKYC();
             } else {
                 alert(data.message);
@@ -95,13 +104,13 @@ export default function ProviderKYC() {
                                     </select>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="documentUrl">Document URL (Image/PDF)</Label>
+                                    <Label htmlFor="documentFile">Document File (Image)</Label>
                                     <Input 
-                                        id="documentUrl" 
-                                        placeholder="https://example.com/doc.jpg" 
+                                        id="documentFile" 
+                                        type="file"
+                                        accept="image/*"
                                         required 
-                                        value={formData.documentUrl}
-                                        onChange={(e) => setFormData({ ...formData, documentUrl: e.target.value })}
+                                        onChange={(e) => setFile(e.target.files?.[0] || null)}
                                     />
                                 </div>
                                 <Button type="submit" className="w-full" disabled={isUploading}>

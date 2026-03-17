@@ -70,7 +70,7 @@ export default function AdminVehiclesPage() {
                 {vehicles.map((vehicle) => (
                     <div key={vehicle.id} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border dark:border-gray-700">
                         <div className="flex flex-col md:flex-row gap-6">
-                            {vehicle.images && vehicle.images.length > 0 && (
+                            {vehicle.images && vehicle.images.length > 0 && vehicle.images[0] && vehicle.images[0].trim() !== '' && (
                                 <img src={vehicle.images[0]} alt={vehicle.model} className="w-full md:w-48 h-32 object-cover rounded-lg" />
                             )}
                             <div className="flex-1 space-y-1">

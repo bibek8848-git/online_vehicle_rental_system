@@ -12,9 +12,14 @@ export default function UserDashboard() {
   useEffect(() => {
     async function fetchDashboardData() {
       try {
+        const token = localStorage.getItem('token');
         const [bookingsRes, kycRes] = await Promise.all([
-          fetch('/api/user/bookings'),
-          fetch('/api/user/kyc')
+          fetch('/api/user/bookings', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          }),
+          fetch('/api/user/kyc', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          })
         ]);
         
         const bookingsData = await bookingsRes.json();

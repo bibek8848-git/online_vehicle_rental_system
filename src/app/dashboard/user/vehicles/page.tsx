@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
 export default function VehiclesPage() {
-  const [vehicles, setVehicles] = useState([]);
+  const [vehicles, setVehicles] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [minPrice, setMinPrice] = useState('');
@@ -14,15 +14,21 @@ export default function VehiclesPage() {
 
   const fetchVehicles = async () => {
     setIsLoading(true);
+    
     try {
+      const token = localStorage.getItem('token');
       const params = new URLSearchParams();
-      if (search) params.append('search', search);
+      if (search.trim()) params.append('search', search.trim());
       if (minPrice) params.append('minPrice', minPrice);
       if (maxPrice) params.append('maxPrice', maxPrice);
       if (startDate) params.append('startDate', startDate);
       if (endDate) params.append('endDate', endDate);
 
-      const res = await fetch(`/api/user/vehicles?${params.toString()}`);
+      const res = await fetch(`/api/user/vehicles?${params.toString()}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       const data = await res.json();
       if (data.success) {
         setVehicles(data.data);
@@ -96,7 +102,7 @@ export default function VehiclesPage() {
         </div>
         <div className="flex items-end">
           <button 
-            onClick={fetchVehicles}
+            onClick={() => fetchVehicles()}
             className="w-full bg-blue-600 text-white py-2 rounded text-sm hover:bg-blue-700"
           >
             Apply Filters
@@ -112,7 +118,7 @@ export default function VehiclesPage() {
           {vehicles.length > 0 ? vehicles.map((vehicle: any) => (
             <div key={vehicle.id} className="bg-white dark:bg-gray-900 rounded-lg overflow-hidden shadow-sm border border-gray-200 dark:border-gray-800 flex flex-col">
               <div className="h-48 bg-gray-200 dark:bg-gray-800 relative">
-                {vehicle.images && vehicle.images[0] ? (
+                {vehicle.images && vehicle.images[0] && vehicle.images[0].trim() !== '' ? (
                   <img src={vehicle.images[0]} alt={vehicle.make} className="w-full h-full object-cover" />
                 ) : (
                   <div className="flex items-center justify-center h-full text-gray-400">No Image</div>
@@ -139,7 +145,7 @@ export default function VehiclesPage() {
               </div>
             </div>
           )) : (
-            <div className="col-span-full text-center py-12 text-gray-500">No vehicles found matching your criteria.</div>
+            <div className="col-span-full text-center py-12 text-gray-500">No vehicles found.</div>
           )}
         </div>
       )}

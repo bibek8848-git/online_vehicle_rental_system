@@ -37,7 +37,8 @@ export async function ensureTablesExist() {
           id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
           user_id UUID REFERENCES users(id) ON DELETE CASCADE,
           document_type TEXT NOT NULL, -- Citizenship, License, Business Registration
-          document_url TEXT NOT NULL,
+          document_url TEXT,
+          document_data BYTEA,
           status TEXT DEFAULT 'PENDING',
           rejection_reason TEXT,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

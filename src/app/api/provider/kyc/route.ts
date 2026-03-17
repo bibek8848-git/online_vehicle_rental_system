@@ -12,10 +12,23 @@ export async function GET(req: NextRequest) {
 
     try {
         const result = await pgPool.query(
-            'SELECT * FROM kyc_documents WHERE user_id = $1 ORDER BY created_at DESC',
+            'SELECT id, user_id, document_type, document_url, document_data, status, rejection_reason, created_at FROM kyc_documents WHERE user_id = $1 ORDER BY created_at DESC',
             [user.id]
         );
-        return NextResponse.json({ success: true, data: result.rows });
+
+        const processedDocs = result.rows.map(doc => {
+            if (doc.document_data) {
+                const base64 = doc.document_data.toString('base64');
+                return {
+                    ...doc,
+                    document_url: `data:image/jpeg;base64,${base64}`,
+                    document_data: undefined
+                };
+            }
+            return doc;
+        });
+
+        return NextResponse.json({ success: true, data: processedDocs });
     } catch (error) {
         console.error('Error fetching KYC:', error);
         return NextResponse.json({ success: false, message: 'Failed to fetch KYC documents' }, { status: 500 });
@@ -31,16 +44,20 @@ export async function POST(req: NextRequest) {
     if (!roleAuth.authorized) return roleAuth.errorResponse;
 
     try {
-        const { documentType, documentUrl } = await req.json();
+        const formData = await req.formData();
+        const documentType = formData.get('documentType') as string;
+        const file = formData.get('file') as File;
 
-        if (!documentType || !documentUrl) {
-            return NextResponse.json({ success: false, message: 'Document type and URL are required' }, { status: 400 });
+        if (!documentType || !file) {
+            return NextResponse.json({ success: false, message: 'Document type and file are required' }, { status: 400 });
         }
+
+        const buffer = Buffer.from(await file.arrayBuffer());
 
         // Insert document
         await pgPool.query(
-            'INSERT INTO kyc_documents (user_id, document_type, document_url, status) VALUES ($1, $2, $3, $4)',
-            [user.id, documentType, documentUrl, 'PENDING']
+            'INSERT INTO kyc_documents (user_id, document_type, document_data, status) VALUES ($1, $2, $3, $4)',
+            [user.id, documentType, buffer, 'PENDING']
         );
 
         // Update user KYC status to PENDING if it was REJECTED or null

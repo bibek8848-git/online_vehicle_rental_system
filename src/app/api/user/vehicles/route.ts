@@ -12,10 +12,10 @@ export async function GET(req: NextRequest) {
 
     try {
         const { searchParams } = new URL(req.url);
-        const search = searchParams.get('search') || '';
+        const search = (searchParams.get('search') || '').trim();
         const type = searchParams.get('type') || '';
-        const minPrice = searchParams.get('minPrice') || '0';
-        const maxPrice = searchParams.get('maxPrice') || '9999999';
+        const minPrice = searchParams.get('minPrice');
+        const maxPrice = searchParams.get('maxPrice');
         const startDate = searchParams.get('startDate');
         const endDate = searchParams.get('endDate');
 
@@ -24,14 +24,27 @@ export async function GET(req: NextRequest) {
             FROM vehicles v 
             WHERE v.is_approved = TRUE 
             AND v.is_available = TRUE
-            AND (v.make ILIKE $1 OR v.model ILIKE $1 OR v.description ILIKE $1)
-            AND v.price_per_day BETWEEN $2 AND $3
         `;
-        const params: any[] = [`%${search}%`, minPrice, maxPrice];
+        const params: any[] = [];
+
+        if (search) {
+            params.push(`%${search}%`);
+            query += ` AND (v.make ILIKE $${params.length} OR v.model ILIKE $${params.length} OR v.description ILIKE $${params.length})`;
+        }
+
+        if (minPrice && !isNaN(parseFloat(minPrice))) {
+            params.push(parseFloat(minPrice));
+            query += ` AND v.price_per_day >= $${params.length}`;
+        }
+
+        if (maxPrice && !isNaN(parseFloat(maxPrice))) {
+            params.push(parseFloat(maxPrice));
+            query += ` AND v.price_per_day <= $${params.length}`;
+        }
 
         if (type) {
-            query += ` AND v.make ILIKE $${params.length + 1}`;
             params.push(`%${type}%`);
+            query += ` AND v.type ILIKE $${params.length}`;
         }
 
         // Availability filtering logic

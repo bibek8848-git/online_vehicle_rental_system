@@ -6,14 +6,19 @@ export default function KYCPage() {
   const [kycData, setKycData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [docType, setDocType] = useState('Citizenship');
-  const [docUrl, setDocUrl] = useState('');
+  const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [message, setMessage] = useState('');
 
   const fetchKYC = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch('/api/user/kyc');
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/user/kyc', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       const data = await res.json();
       if (data.success) {
         setKycData(data.data);
@@ -31,21 +36,31 @@ export default function KYCPage() {
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!docUrl) return;
+    if (!file) return;
     setIsUploading(true);
     setMessage('');
 
     try {
+      const token = localStorage.getItem('token');
+      const formData = new FormData();
+      formData.append('documentType', docType);
+      formData.append('file', file);
+
       const res = await fetch('/api/user/kyc', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ documentType: docType, documentUrl: docUrl })
+        headers: { 
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
       });
 
       const data = await res.json();
       if (data.success) {
         setMessage('Document uploaded successfully!');
-        setDocUrl('');
+        setFile(null);
+        // Reset file input
+        const fileInput = document.getElementById('kyc-file') as HTMLInputElement;
+        if (fileInput) fileInput.value = '';
         fetchKYC();
       } else {
         setMessage(data.message || 'Failed to upload document');
@@ -96,14 +111,14 @@ export default function KYCPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Document URL (Simulation)</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Document File</label>
               <input 
-                type="text" 
-                placeholder="Enter image URL" 
+                id="kyc-file"
+                type="file" 
+                accept="image/*"
                 className="w-full border rounded p-2 bg-transparent text-sm"
                 required
-                value={docUrl}
-                onChange={(e) => setDocUrl(e.target.value)}
+                onChange={(e) => setFile(e.target.files?.[0] || null)}
               />
             </div>
             <button 

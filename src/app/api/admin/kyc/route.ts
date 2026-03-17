@@ -11,12 +11,26 @@ export async function GET(req: NextRequest) {
 
     try {
         const result = await pgPool.query(`
-            SELECT k.*, u.name as user_name, u.email as user_email, u.role as user_role
+            SELECT k.id, k.user_id, k.document_type, k.document_url, k.document_data, k.status, k.rejection_reason, k.created_at, 
+                   u.name as user_name, u.email as user_email, u.role as user_role
             FROM kyc_documents k
             JOIN users u ON k.user_id = u.id
             ORDER BY k.created_at DESC
         `);
-        return NextResponse.json({ success: true, data: result.rows });
+
+        const processedData = result.rows.map(doc => {
+            if (doc.document_data) {
+                const base64 = doc.document_data.toString('base64');
+                return {
+                    ...doc,
+                    document_url: `data:image/jpeg;base64,${base64}`,
+                    document_data: undefined
+                };
+            }
+            return doc;
+        });
+
+        return NextResponse.json({ success: true, data: processedData });
     } catch (error) {
         console.error("KYC fetch error:", error);
         return NextResponse.json({ success: false, message: "Failed to fetch KYC documents" }, { status: 500 });

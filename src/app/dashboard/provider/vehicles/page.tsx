@@ -73,7 +73,7 @@ export default function MyVehicles() {
                         {vehicles.map((vehicle: any) => (
                             <Card key={vehicle.id} className="overflow-hidden">
                                 <div className="aspect-video relative bg-gray-200">
-                                    {vehicle.images?.[0] ? (
+                                    {vehicle.images?.[0] && vehicle.images[0].trim() !== '' ? (
                                         <img src={vehicle.images[0]} alt={`${vehicle.make} ${vehicle.model}`} className="w-full h-full object-cover" />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>

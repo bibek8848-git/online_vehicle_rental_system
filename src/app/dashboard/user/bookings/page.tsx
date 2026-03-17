@@ -9,7 +9,12 @@ export default function BookingsPage() {
   useEffect(() => {
     async function fetchBookings() {
       try {
-        const res = await fetch('/api/user/bookings');
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/user/bookings', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
         const data = await res.json();
         if (data.success) {
           setBookings(data.data);
@@ -25,9 +30,13 @@ export default function BookingsPage() {
 
   const handlePayment = async (booking: any) => {
     try {
+      const token = localStorage.getItem('token');
       const res = await fetch('/api/user/payments/initiate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({
           bookingId: booking.id,
           amount: booking.total_price
@@ -45,6 +54,16 @@ export default function BookingsPage() {
       alert("Failed to initiate payment. Please try again.");
     }
   };
+
+  useEffect(() => {
+    const { searchParams } = new URL(window.location.href);
+    const status = searchParams.get('status');
+    if (status === 'success') {
+      alert('Payment successful! Your booking is confirmed.');
+    } else if (status === 'failed') {
+      alert('Payment failed. Please try again.');
+    }
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -69,8 +88,17 @@ export default function BookingsPage() {
               {bookings.length > 0 ? bookings.map((booking: any) => (
                 <tr key={booking.id}>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900 dark:text-white">{booking.make} {booking.model}</div>
-                    <div className="text-xs text-gray-500">{booking.registration_number}</div>
+                    <div className="flex items-center">
+                      {booking.images && booking.images.length > 0 && booking.images[0] && booking.images[0].trim() !== '' && (
+                        <div className="flex-shrink-0 h-10 w-10 mr-3">
+                          <img className="h-10 w-10 rounded-md object-cover" src={booking.images[0]} alt="" />
+                        </div>
+                      )}
+                      <div>
+                        <div className="text-sm font-medium text-gray-900 dark:text-white">{booking.make} {booking.model}</div>
+                        <div className="text-xs text-gray-500">{booking.registration_number}</div>
+                      </div>
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                     {new Date(booking.start_date).toLocaleDateString()} - {new Date(booking.end_date).toLocaleDateString()}

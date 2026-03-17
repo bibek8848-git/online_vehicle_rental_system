@@ -17,7 +17,12 @@ export default function VehicleDetailsPage() {
   useEffect(() => {
     async function fetchVehicle() {
       try {
-        const res = await fetch(`/api/user/vehicles/${id}`);
+        const token = localStorage.getItem('token');
+        const res = await fetch(`/api/user/vehicles/${id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
         const data = await res.json();
         if (data.success) {
           setVehicle(data.data);
@@ -50,9 +55,13 @@ export default function VehicleDetailsPage() {
     const totalPrice = diffDays * vehicle.price_per_day;
 
     try {
+      const token = localStorage.getItem('token');
       const res = await fetch('/api/user/bookings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({
           vehicleId: id,
           startDate,
@@ -84,14 +93,14 @@ export default function VehicleDetailsPage() {
         {/* Images */}
         <div className="space-y-4">
           <div className="aspect-video bg-gray-200 dark:bg-gray-800 rounded-lg overflow-hidden">
-            {vehicle.images && vehicle.images[0] ? (
+            {vehicle.images && vehicle.images[0] && vehicle.images[0].trim() !== '' ? (
               <img src={vehicle.images[0]} alt={vehicle.make} className="w-full h-full object-cover" />
             ) : (
               <div className="flex items-center justify-center h-full text-gray-400">No Image</div>
             )}
           </div>
           <div className="grid grid-cols-4 gap-2">
-            {vehicle.images?.slice(1).map((img: string, index: number) => (
+            {vehicle.images?.slice(1).filter((img: string) => img.trim() !== '').map((img: string, index: number) => (
               <div key={index} className="aspect-square bg-gray-200 dark:bg-gray-800 rounded overflow-hidden">
                 <img src={img} alt={`${vehicle.make} ${index}`} className="w-full h-full object-cover" />
               </div>
