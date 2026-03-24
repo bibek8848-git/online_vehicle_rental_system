@@ -28,31 +28,8 @@ export default function BookingsPage() {
     fetchBookings();
   }, []);
 
-  const handlePayment = async (booking: any) => {
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('/api/user/payments/initiate', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          bookingId: booking.id,
-          amount: booking.total_price
-        })
-      });
-
-      const data = await res.json();
-      if (data.success) {
-        // In a real eSewa integration, you would submit a form to eSewa.
-        // For this simulation, we'll just redirect to the callback success URL.
-        const callbackUrl = `${data.data.successUrl}&oid=${data.data.transactionId}&amt=${data.data.amount}&refId=SIMULATED_REF_${Date.now()}`;
-        window.location.href = callbackUrl;
-      }
-    } catch (error) {
-      alert("Failed to initiate payment. Please try again.");
-    }
+  const handlePayment = (bookingId: number) => {
+    window.location.href = `/dashboard/user/payments/${bookingId}`;
   };
 
   useEffect(() => {
@@ -125,7 +102,7 @@ export default function BookingsPage() {
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     {booking.status === 'APPROVED' && booking.payment_status === 'UNPAID' && (
                       <button 
-                        onClick={() => handlePayment(booking)}
+                        onClick={() => handlePayment(booking.id)}
                         className="text-blue-600 hover:text-blue-900 bg-blue-50 px-3 py-1 rounded"
                       >
                         Pay with eSewa

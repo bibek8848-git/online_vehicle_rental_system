@@ -18,7 +18,8 @@ export async function ensureTablesExist() {
     if (globalPg.tablesEnsured) return;
 
     try {
-        await pgPool.query(`
+        console.log('Connecting to database...');
+        const res = await pgPool.query(`
         CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
         CREATE TABLE IF NOT EXISTS users (
@@ -93,6 +94,14 @@ export async function ensureTablesExist() {
         );
       `);
     } catch (error: any) {
+        console.error('Database connection error details:', {
+            message: error.message,
+            code: error.code,
+            host: config.database.dbUrl?.split('@')[1]?.split(':')[0],
+        });
+        if (error.code === 'ENOTFOUND') {
+            throw new Error(`Database host not found. Please check your DATABASE_URL in .env and your internet connection. Host: ${config.database.dbUrl?.split('@')[1]?.split(':')[0]}`);
+        }
         if (error.code === '42804') {
             console.warn('Database schema mismatch detected (integer vs UUID). Attempting to fix by dropping and recreating tables...');
             try {

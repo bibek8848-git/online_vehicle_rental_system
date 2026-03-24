@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { config } from '@/lib/config';
-import { pgPool } from '@/lib/db';
+import { pgPool, ensureTablesExist } from '@/lib/db';
 import jwt from 'jsonwebtoken';
 
 export async function GET(req: NextRequest) {
@@ -12,6 +12,9 @@ export async function GET(req: NextRequest) {
     }
 
     try {
+        // Ensure tables exist before trying to sync user
+        await ensureTablesExist();
+
         const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -38,18 +41,29 @@ export async function GET(req: NextRequest) {
         const { name, email, picture: avatar } = userInfo;
 
         // Check if user exists
-        const existingUserRes = await pgPool.query(`SELECT * FROM users WHERE email = $1`, [email]);
-        let user = existingUserRes.rows[0];
+        let user;
+        try {
+            const existingUserRes = await pgPool.query(`SELECT * FROM users WHERE email = $1`, [email]);
+            user = existingUserRes.rows[0];
 
-        if (!user) {
-            const insertRes = await pgPool.query(
-                `INSERT INTO users (name, email, profile_picture) VALUES ($1, $2, $3) RETURNING *`,
-                [name, email, avatar]
-            );
-            user = insertRes.rows[0];
+            if (!user) {
+                const insertRes = await pgPool.query(
+                    `INSERT INTO users (name, email, profile_picture) VALUES ($1, $2, $3) RETURNING *`,
+                    [name, email, avatar]
+                );
+                user = insertRes.rows[0];
+            }
+        } catch (dbError: any) {
+            console.error('Database Error during Google OAuth:', dbError);
+            return NextResponse.json({ error: 'Database sync failed', details: dbError.message }, { status: 500 });
         }
 
         // 🔐 Create JWT token
+        if (!config.jwtKey.jwtKey) {
+            console.error('JWT_SECRET is missing from environment variables');
+            return NextResponse.json({ error: 'Server configuration error: JWT_SECRET missing' }, { status: 500 });
+        }
+
         const token = jwt.sign(
             { id: user.id, email: user.email, role: user.role }, 
             config.jwtKey.jwtKey as string, 
@@ -66,10 +80,12 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.redirect(redirectUrl);
 
-
-
-    } catch (err) {
+    } catch (err: any) {
         console.error('Google OAuth Error:', err);
-        return NextResponse.json({ error: 'Something went wrong during authentication' }, { status: 500 });
+        return NextResponse.json({ 
+            error: 'Something went wrong during authentication',
+            message: err.message,
+            stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+        }, { status: 500 });
     }
 }

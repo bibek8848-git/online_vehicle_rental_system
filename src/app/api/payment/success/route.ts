@@ -3,23 +3,26 @@ import { pgPool } from "@/lib/db";
 
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
-    const status = searchParams.get('q'); // 'su' for success, 'fu' for failure
-    const oid = searchParams.get('oid'); // Order ID / Transaction ID
-    const amt = searchParams.get('amt');
-    const refId = searchParams.get('refId');
+    const encodedResponse = searchParams.get('data');
+
+    if (!encodedResponse) {
+        return NextResponse.redirect(new URL('/dashboard/user/bookings?status=failed', req.url));
+    }
 
     try {
-        if (status === 'su') {
-            // Success logic
-            // In a real eSewa integration, you would verify the payment with eSewa servers here using refId and amt.
+        // Decode base64 response from eSewa
+        const decodedData = JSON.parse(Buffer.from(encodedResponse, 'base64').toString('utf-8'));
+        
+        if (decodedData.status === 'COMPLETE') {
+            const { transaction_uuid, total_amount, transaction_code } = decodedData;
             
             // Update payment status
             const paymentResult = await pgPool.query(`
                 UPDATE payments 
-                SET status = 'SUCCESS', transaction_id = COALESCE($1, transaction_id)
-                WHERE transaction_id = $2 OR id::text = $2
+                SET status = 'SUCCESS', transaction_id = $1
+                WHERE transaction_id = $2
                 RETURNING booking_id, user_id
-            `, [refId, oid]);
+            `, [transaction_code, transaction_uuid]);
 
             if (paymentResult.rows.length > 0) {
                 const { booking_id, user_id } = paymentResult.rows[0];
@@ -38,11 +41,10 @@ export async function GET(req: NextRequest) {
 
             return NextResponse.redirect(new URL('/dashboard/user/bookings?status=success', req.url));
         } else {
-            // Failure logic
             return NextResponse.redirect(new URL('/dashboard/user/bookings?status=failed', req.url));
         }
     } catch (error) {
-        console.error('Payment callback error:', error);
+        console.error('Payment success callback error:', error);
         return NextResponse.redirect(new URL('/dashboard/user/bookings?status=error', req.url));
     }
 }
