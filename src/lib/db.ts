@@ -34,6 +34,16 @@ export async function ensureTablesExist() {
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
+        DO $$ 
+        BEGIN 
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='profile_picture') THEN
+                ALTER TABLE users ADD COLUMN profile_picture TEXT;
+            END IF;
+
+            -- Ensure password can be null (for OAuth users)
+            ALTER TABLE users ALTER COLUMN password DROP NOT NULL;
+        END $$;
+
         CREATE TABLE IF NOT EXISTS kyc_documents (
           id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
           user_id UUID REFERENCES users(id) ON DELETE CASCADE,

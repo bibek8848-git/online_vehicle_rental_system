@@ -15,7 +15,8 @@ export async function middleware(request: NextRequest) {
       try {
         const { payload } = await jwtVerify(token, secret);
         const decoded = payload as any;
-        const dashboard = `/dashboard/${decoded.role.toLowerCase()}`;
+        const userRole = (decoded.role || '').toUpperCase();
+        const dashboard = `/dashboard/${userRole.toLowerCase()}`;
         return NextResponse.redirect(new URL(dashboard, request.url));
       } catch (error) {
         // Invalid token, allow access to login/register
@@ -37,7 +38,8 @@ export async function middleware(request: NextRequest) {
     try {
       const { payload } = await jwtVerify(token, secret);
       const decoded = payload as any;
-      const dashboard = `/dashboard/${decoded.role.toLowerCase()}`;
+      const userRole = (decoded.role || '').toUpperCase();
+      const dashboard = `/dashboard/${userRole.toLowerCase()}`;
       return NextResponse.redirect(new URL(dashboard, request.url));
     } catch (error) {
       return NextResponse.redirect(new URL('/login', request.url));
@@ -67,12 +69,20 @@ export async function middleware(request: NextRequest) {
       const { payload } = await jwtVerify(token, secret);
       const decoded = payload as any;
       
-      if (!matchedRoute.roles.includes(decoded.role)) {
+      const userRole = (decoded.role || '').toUpperCase();
+      
+      if (!matchedRoute.roles.includes(userRole)) {
         if (pathname.startsWith('/api/')) {
           return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 });
         }
         // Redirect to their own dashboard if they try to access another one
-        const dashboard = `/dashboard/${decoded.role.toLowerCase()}`;
+        const dashboard = `/dashboard/${userRole.toLowerCase()}`;
+        
+        // Prevent infinite redirect loop if already on the dashboard
+        if (pathname === dashboard) {
+          return NextResponse.next();
+        }
+        
         return NextResponse.redirect(new URL(dashboard, request.url));
       }
     } catch (error) {

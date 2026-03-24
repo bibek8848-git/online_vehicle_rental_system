@@ -29,15 +29,53 @@ export default function Header() {
         } else {
             setUser({});
         }
+
+        // Poll for notifications every 30 seconds
+        const interval = setInterval(() => {
+            if (localStorage.getItem("token")) {
+                fetchNotifications();
+            }
+        }, 30000);
+
+        return () => clearInterval(interval);
     }, []);
 
     const fetchNotifications = async () => {
         try {
-            const res = await fetch('/api/notifications');
+            const token = localStorage.getItem("token");
+            if (!token) return;
+
+            const res = await fetch('/api/notifications', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
             const data = await res.json();
             if (data.success) setNotifications(data.data);
         } catch (error) {
             console.error("Error fetching notifications:", error);
+        }
+    };
+
+    const markAsRead = async (notification_id?: string) => {
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) return;
+
+            const res = await fetch('/api/notifications', {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ notification_id })
+            });
+
+            if (res.ok) {
+                fetchNotifications();
+            }
+        } catch (error) {
+            console.error("Error marking notification as read:", error);
         }
     };
 
@@ -69,9 +107,23 @@ export default function Header() {
                         </button>
                         {showNotifications && (
                             <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 border rounded-lg shadow-xl z-50 max-h-96 overflow-y-auto">
-                                <div className="p-2 border-b font-bold text-sm">Notifications</div>
+                                <div className="p-2 border-b font-bold text-sm flex justify-between items-center">
+                                    <span>Notifications</span>
+                                    {notifications.some(n => !n.is_read) && (
+                                        <button 
+                                            onClick={() => markAsRead()}
+                                            className="text-[10px] text-blue-600 hover:underline"
+                                        >
+                                            Mark all as read
+                                        </button>
+                                    )}
+                                </div>
                                 {notifications.length > 0 ? notifications.map((n: any) => (
-                                    <div key={n.id} className={`p-3 text-xs border-b ${n.is_read ? 'opacity-60' : 'bg-blue-50 dark:bg-blue-900/20'}`}>
+                                    <div 
+                                        key={n.id} 
+                                        className={`p-3 text-xs border-b cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 ${n.is_read ? 'opacity-60' : 'bg-blue-50 dark:bg-blue-900/20'}`}
+                                        onClick={() => !n.is_read && markAsRead(n.id)}
+                                    >
                                         {n.message}
                                         <div className="text-[10px] text-gray-400 mt-1">{new Date(n.created_at).toLocaleString()}</div>
                                     </div>
@@ -111,10 +163,13 @@ export default function Header() {
                             <img
                                 src={user.avatar}
                                 alt="avatar"
-                                className="w-10 h-10 rounded-full object-cover"
+                                className="w-10 h-10 rounded-full object-cover border border-gray-200 dark:border-gray-700"
+                                referrerPolicy="no-referrer"
                             />
                         ) : (
-                            <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-700" />
+                            <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-300 font-bold border border-blue-200 dark:border-blue-800">
+                                {(user.name || 'U').charAt(0).toUpperCase()}
+                            </div>
                         )}
 
                         {/* Logout */}

@@ -29,6 +29,9 @@ export default function UserLayout({
               <Link href="/dashboard/user/kyc" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-1 pt-1 text-sm font-medium">
                 KYC
               </Link>
+              <Link href="/dashboard/user/payments" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-1 pt-1 text-sm font-medium">
+                Payments
+              </Link>
             </div>
           </div>
         </div>

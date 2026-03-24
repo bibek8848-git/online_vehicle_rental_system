@@ -177,7 +177,7 @@ export default function PaymentPage({ params }: { params: Promise<{ bookingId: s
                 </>
               ) : (
                 <>
-                  <img src="https://blog.esewa.com.np/wp-content/uploads/2021/01/esewa_logo.png" alt="eSewa" className="h-8 bg-white px-2 py-0.5 rounded" />
+                  <img src="https://esewa.com.np/common/images/esewa_logo.png" alt="eSewa" className="h-8 bg-white px-2 py-0.5 rounded" />
                   Pay with eSewa
                 </>
               )}

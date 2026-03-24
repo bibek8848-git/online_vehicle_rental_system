@@ -52,6 +52,13 @@ export async function GET(req: NextRequest) {
                     [name, email, avatar]
                 );
                 user = insertRes.rows[0];
+            } else if (!user.profile_picture && avatar) {
+                // Update profile picture if it's missing for an existing user
+                const updateRes = await pgPool.query(
+                    `UPDATE users SET profile_picture = $1 WHERE id = $2 RETURNING *`,
+                    [avatar, user.id]
+                );
+                user = updateRes.rows[0];
             }
         } catch (dbError: any) {
             console.error('Database Error during Google OAuth:', dbError);
