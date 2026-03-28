@@ -18,6 +18,15 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: false, message: "Missing required booking details" }, { status: 400 });
         }
 
+        // 1.1 Check KYC status
+        const userKycResult = await pgPool.query('SELECT kyc_status FROM users WHERE id = $1', [user.id]);
+        if (!userKycResult.rows[0] || userKycResult.rows[0].kyc_status !== 'APPROVED') {
+            return NextResponse.json({ 
+                success: false, 
+                message: "You must have an approved KYC to book a vehicle. Please go to the KYC section and update your information." 
+            }, { status: 403 });
+        }
+
         // 2. Check for date conflicts (Double booking prevention)
         const conflictCheck = await pgPool.query(`
             SELECT * FROM bookings 

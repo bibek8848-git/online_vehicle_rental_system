@@ -13,8 +13,37 @@ export default function VehicleDetailsPage() {
   const [isBooking, setIsBooking] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
+    // Load user from localStorage
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+        try {
+            setUser(JSON.parse(storedUser));
+        } catch (e) {
+            console.error("Failed to parse user", e);
+        }
+    }
+
+    async function fetchLatestKycStatus() {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch('/api/user/kyc', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (data.success && data.data) {
+                setUser((prev: any) => ({
+                    ...prev,
+                    kyc_status: data.data.status
+                }));
+            }
+        } catch (error) {
+            console.error("Failed to fetch latest KYC status", error);
+        }
+    }
+
     async function fetchVehicle() {
       try {
         const token = localStorage.getItem('token');
@@ -33,6 +62,7 @@ export default function VehicleDetailsPage() {
         setIsLoading(false);
       }
     }
+    fetchLatestKycStatus();
     fetchVehicle();
   }, [id]);
 
@@ -132,6 +162,18 @@ export default function VehicleDetailsPage() {
 
           <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800">
             <h3 className="text-lg font-bold mb-4">Book this Vehicle</h3>
+            {user && user.kyc_status !== 'APPROVED' && (
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 p-4 rounded-lg mb-6 text-sm flex flex-col gap-2">
+                <span className="font-bold uppercase tracking-wide text-xs">⚠️ KYC Verification Required</span>
+                <p>You need to have an approved KYC status to book vehicles. Please complete your KYC verification first.</p>
+                <button 
+                  onClick={() => router.push('/dashboard/user/kyc')}
+                  className="w-fit text-blue-600 dark:text-blue-400 font-semibold hover:underline"
+                >
+                  Update KYC Now &rarr;
+                </button>
+              </div>
+            )}
             {error && <div className="bg-red-50 text-red-500 p-3 rounded mb-4 text-sm">{error}</div>}
             {success && <div className="bg-green-50 text-green-500 p-3 rounded mb-4 text-sm">{success}</div>}
             
@@ -162,10 +204,10 @@ export default function VehicleDetailsPage() {
               </div>
               <button 
                 type="submit"
-                disabled={isBooking}
+                disabled={isBooking || (user && user.kyc_status !== 'APPROVED')}
                 className="w-full bg-blue-600 text-white py-3 rounded-md font-bold hover:bg-blue-700 disabled:opacity-50"
               >
-                {isBooking ? 'Processing...' : 'Request Booking'}
+                {isBooking ? 'Processing...' : (user && user.kyc_status !== 'APPROVED' ? 'KYC Required to Book' : 'Request Booking')}
               </button>
             </form>
           </div>

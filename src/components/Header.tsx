@@ -2,7 +2,8 @@
 
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
 
 export default function Header() {
     const { theme, setTheme } = useTheme();
@@ -11,6 +12,7 @@ export default function Header() {
     const [notifications, setNotifications] = useState<any[]>([]);
     const [showNotifications, setShowNotifications] = useState(false);
     const router = useRouter();
+    const pathname = usePathname();
 
     useEffect(() => {
         setMounted(true);
@@ -50,6 +52,13 @@ export default function Header() {
                     'Authorization': `Bearer ${token}`
                 }
             });
+            
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({}));
+                console.error("Failed to fetch notifications:", res.status, errorData.message);
+                return;
+            }
+
             const data = await res.json();
             if (data.success) setNotifications(data.data);
         } catch (error) {
@@ -73,6 +82,9 @@ export default function Header() {
 
             if (res.ok) {
                 fetchNotifications();
+            } else {
+                const errorData = await res.json().catch(() => ({}));
+                console.error("Failed to mark notifications as read:", res.status, errorData.message);
             }
         } catch (error) {
             console.error("Error marking notification as read:", error);
@@ -88,10 +100,73 @@ export default function Header() {
     };
 
     return (
-        <header className="flex items-center justify-between px-6 py-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+        <header className="flex items-center justify-between px-6 py-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm sticky top-0 z-50">
             {/* Left: App Name */}
-            <div className="text-xl font-bold text-blue-600 tracking-tight">
-                Secure Drives
+            <div className="flex items-center gap-8">
+                <Link href="/" className="text-xl font-bold text-blue-600 tracking-tight">
+                    Secure Drives
+                </Link>
+
+                {/* Navigation Links */}
+                {user && user.email && (
+                    <nav className="hidden md:flex items-center space-x-6">
+                        {user.role === 'PROVIDER' ? (
+                            <>
+                                <Link 
+                                    href="/dashboard/provider" 
+                                    className={`text-sm font-medium transition-colors hover:text-blue-600 ${pathname === '/dashboard/provider' ? 'text-blue-600' : 'text-gray-600 dark:text-gray-300'}`}
+                                >
+                                    Dashboard
+                                </Link>
+                                <Link 
+                                    href="/dashboard/provider/vehicles" 
+                                    className={`text-sm font-medium transition-colors hover:text-blue-600 ${pathname === '/dashboard/provider/vehicles' ? 'text-blue-600' : 'text-gray-600 dark:text-gray-300'}`}
+                                >
+                                    My Vehicles
+                                </Link>
+                                <Link 
+                                    href="/dashboard/provider/bookings" 
+                                    className={`text-sm font-medium transition-colors hover:text-blue-600 ${pathname === '/dashboard/provider/bookings' ? 'text-blue-600' : 'text-gray-600 dark:text-gray-300'}`}
+                                >
+                                    Bookings
+                                </Link>
+                                <Link 
+                                    href="/dashboard/provider/kyc" 
+                                    className={`text-sm font-medium transition-colors hover:text-blue-600 ${pathname === '/dashboard/provider/kyc' ? 'text-blue-600' : 'text-gray-600 dark:text-gray-300'}`}
+                                >
+                                    KYC
+                                </Link>
+                            </>
+                        ) : (
+                            <>
+                                <Link 
+                                    href="/dashboard/user/vehicles" 
+                                    className={`text-sm font-medium transition-colors hover:text-blue-600 ${pathname === '/dashboard/user/vehicles' ? 'text-blue-600' : 'text-gray-600 dark:text-gray-300'}`}
+                                >
+                                    Browse Vehicles
+                                </Link>
+                                <Link 
+                                    href="/dashboard/user/bookings" 
+                                    className={`text-sm font-medium transition-colors hover:text-blue-600 ${pathname === '/dashboard/user/bookings' ? 'text-blue-600' : 'text-gray-600 dark:text-gray-300'}`}
+                                >
+                                    My Bookings
+                                </Link>
+                                <Link 
+                                    href="/dashboard/user/kyc" 
+                                    className={`text-sm font-medium transition-colors hover:text-blue-600 ${pathname === '/dashboard/user/kyc' ? 'text-blue-600' : 'text-gray-600 dark:text-gray-300'}`}
+                                >
+                                    KYC
+                                </Link>
+                                <Link 
+                                    href="/dashboard/user/payments" 
+                                    className={`text-sm font-medium transition-colors hover:text-blue-600 ${pathname === '/dashboard/user/payments' ? 'text-blue-600' : 'text-gray-600 dark:text-gray-300'}`}
+                                >
+                                    Payments
+                                </Link>
+                            </>
+                        )}
+                    </nav>
+                )}
             </div>
 
             {/* Right: Profile + Theme Toggle + Logout */}
