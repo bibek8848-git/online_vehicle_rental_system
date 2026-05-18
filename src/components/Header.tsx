@@ -4,6 +4,26 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import { 
+    Bell, 
+    Moon, 
+    Sun, 
+    LogOut, 
+    LayoutDashboard, 
+    Car, 
+    Calendar, 
+    ShieldCheck, 
+    CreditCard, 
+    User as UserIcon,
+    ChevronDown,
+    Menu,
+    X
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+    Card,
+    CardContent,
+} from "@/components/ui/card";
 
 export default function Header() {
     const { theme, setTheme } = useTheme();
@@ -11,6 +31,8 @@ export default function Header() {
     const [user, setUser] = useState<{ name?: string; email?: string; avatar?: string; role?: string; kyc_status?: string }>({});
     const [notifications, setNotifications] = useState<any[]>([]);
     const [showNotifications, setShowNotifications] = useState(false);
+    const [showUserMenu, setShowUserMenu] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const router = useRouter();
     const pathname = usePathname();
 
@@ -53,14 +75,23 @@ export default function Header() {
                 }
             });
             
+            const contentType = res.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                const text = await res.text().catch(() => "N/A");
+                console.error(`Expected JSON from /api/notifications but received: ${contentType}. Body: ${text.substring(0, 100)}`);
+                return;
+            }
+
             if (!res.ok) {
                 const errorData = await res.json().catch(() => ({}));
-                console.error("Failed to fetch notifications:", res.status, errorData.message);
+                console.error("Failed to fetch notifications:", res.status, errorData.message || "Unknown error");
                 return;
             }
 
             const data = await res.json();
-            if (data.success) setNotifications(data.data);
+            if (data.success) {
+                setNotifications(data.data || []);
+            }
         } catch (error) {
             console.error("Error fetching notifications:", error);
         }
@@ -79,6 +110,14 @@ export default function Header() {
                 },
                 body: JSON.stringify({ notification_id })
             });
+
+            const contentType = res.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                const text = await res.text().catch(() => "N/A");
+                console.error(`Expected JSON from /api/notifications (PATCH) but received: ${contentType}. Body: ${text.substring(0, 100)}`);
+                if (res.ok) fetchNotifications();
+                return;
+            }
 
             if (res.ok) {
                 fetchNotifications();
@@ -99,179 +138,232 @@ export default function Header() {
         router.push("/login");
     };
 
-    return (
-        <header className="flex items-center justify-between px-6 py-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm sticky top-0 z-50">
-            {/* Left: App Name */}
-            <div className="flex items-center gap-8">
-                <Link href="/" className="text-xl font-bold text-blue-600 tracking-tight">
-                    Secure Drives
-                </Link>
+    if (!mounted) {
+        return (
+            <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                <div className="container flex h-16 items-center justify-between px-4 md:px-8">
+                    <div className="flex items-center gap-2">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+                            <Car className="h-5 w-5 text-primary-foreground" />
+                        </div>
+                        <span className="text-xl font-bold tracking-tight">Secure Drives</span>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <div className="h-8 w-8 rounded-full bg-muted animate-pulse"></div>
+                    </div>
+                </div>
+            </header>
+        );
+    }
 
-                {/* Navigation Links */}
-                {user && user.email && (
-                    <nav className="hidden md:flex items-center space-x-6">
-                        {user.role === 'PROVIDER' ? (
+    const navLinks = user.role === 'PROVIDER' ? [
+        { href: '/dashboard/provider', label: 'Dashboard', icon: LayoutDashboard },
+        { href: '/dashboard/provider/vehicles', label: 'My Vehicles', icon: Car },
+        { href: '/dashboard/provider/bookings', label: 'Bookings', icon: Calendar },
+        { href: '/dashboard/provider/kyc', label: 'KYC', icon: ShieldCheck },
+    ] : [
+        { href: '/dashboard/user/vehicles', label: 'Browse Vehicles', icon: Car },
+        { href: '/dashboard/user/bookings', label: 'My Bookings', icon: Calendar },
+        { href: '/dashboard/user/kyc', label: 'KYC', icon: ShieldCheck },
+        { href: '/dashboard/user/payments', label: 'Payments', icon: CreditCard },
+    ];
+
+    return (
+        <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
+            <div className="container flex h-16 items-center justify-between px-4 md:px-8">
+                {/* Left: App Name */}
+                <div className="flex items-center gap-8">
+                    <Link href="/" className="flex items-center gap-2">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/20">
+                            <Car className="h-6 w-6 text-primary-foreground" />
+                        </div>
+                        <span className="text-xl font-bold tracking-tight hidden sm:inline-block">Secure Drives</span>
+                    </Link>
+
+                    {/* Desktop Navigation */}
+                    {user && user.email && (
+                        <nav className="hidden lg:flex items-center space-x-1">
+                            {navLinks.map((link) => (
+                                <Link 
+                                    key={link.href}
+                                    href={link.href} 
+                                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground ${pathname === link.href ? 'bg-accent text-primary' : 'text-muted-foreground'}`}
+                                >
+                                    <link.icon className="h-4 w-4" />
+                                    {link.label}
+                                </Link>
+                            ))}
+                        </nav>
+                    )}
+                </div>
+
+                {/* Right Actions */}
+                <div className="flex items-center gap-2">
+                    {/* Theme Toggle */}
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                        className="rounded-full"
+                    >
+                        {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                    </Button>
+
+                    {user && user.email ? (
+                        <>
+                            {/* Notifications */}
+                            <div className="relative">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setShowNotifications(!showNotifications)}
+                                    className="relative rounded-full"
+                                >
+                                    <Bell className="h-5 w-5" />
+                                    {notifications.filter((n:any) => !n.is_read).length > 0 && (
+                                        <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-white">
+                                            {notifications.filter((n:any) => !n.is_read).length}
+                                        </span>
+                                    )}
+                                </Button>
+                                {showNotifications && (
+                                    <div className="absolute right-0 mt-3 w-80 origin-top-right rounded-2xl border bg-card text-card-foreground shadow-xl ring-1 ring-black/5 focus:outline-none overflow-hidden z-50">
+                                        <div className="p-4 border-b flex justify-between items-center bg-muted/30">
+                                            <h3 className="font-bold text-sm">Notifications</h3>
+                                            {notifications.some(n => !n.is_read) && (
+                                                <button 
+                                                    onClick={() => markAsRead()}
+                                                    className="text-xs font-semibold text-primary hover:underline"
+                                                >
+                                                    Mark all as read
+                                                </button>
+                                            )}
+                                        </div>
+                                        <div className="max-h-[400px] overflow-y-auto">
+                                            {notifications.length > 0 ? notifications.map((n: any) => (
+                                                <div 
+                                                    key={n.id} 
+                                                    className={`p-4 text-sm border-b last:border-0 cursor-pointer transition-colors hover:bg-muted/50 ${n.is_read ? 'opacity-60' : 'bg-primary/5'}`}
+                                                    onClick={() => !n.is_read && markAsRead(n.id)}
+                                                >
+                                                    <p className="leading-snug">{n.message}</p>
+                                                    <p className="text-[10px] text-muted-foreground mt-2 flex items-center gap-1">
+                                                        <Calendar className="h-3 w-3" />
+                                                        {new Date(n.created_at).toLocaleString()}
+                                                    </p>
+                                                </div>
+                                            )) : (
+                                                <div className="p-8 text-center text-muted-foreground flex flex-col items-center gap-2">
+                                                    <Bell className="h-8 w-8 opacity-20" />
+                                                    <p className="text-sm">No new notifications</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* User Profile Menu */}
+                            <div className="relative ml-2">
+                                <button
+                                    onClick={() => setShowUserMenu(!showUserMenu)}
+                                    className="flex items-center gap-2 rounded-full border p-1 pr-3 hover:bg-accent transition-all duration-200"
+                                >
+                                    {user.avatar && user.avatar.trim() !== '' ? (
+                                        <img
+                                            src={user.avatar}
+                                            alt="avatar"
+                                            className="h-8 w-8 rounded-full object-cover shadow-sm"
+                                            referrerPolicy="no-referrer"
+                                        />
+                                    ) : (
+                                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
+                                            {(user.name || 'U').charAt(0).toUpperCase()}
+                                        </div>
+                                    )}
+                                    <div className="hidden sm:flex flex-col items-start text-left">
+                                        <span className="text-xs font-bold leading-tight">{user.name || 'User'}</span>
+                                        <span className="text-[10px] text-muted-foreground leading-tight uppercase tracking-wider">{user.role}</span>
+                                    </div>
+                                    <ChevronDown className={`h-3 w-3 text-muted-foreground transition-transform duration-200 ${showUserMenu ? 'rotate-180' : ''}`} />
+                                </button>
+
+                                {showUserMenu && (
+                                    <div className="absolute right-0 mt-3 w-56 origin-top-right rounded-2xl border bg-card text-card-foreground shadow-xl ring-1 ring-black/5 p-2 z-50">
+                                        <div className="px-3 py-2 mb-2 border-b">
+                                            <p className="text-xs font-medium text-muted-foreground">Signed in as</p>
+                                            <p className="text-sm font-bold truncate">{user.email}</p>
+                                        </div>
+                                        <Link href="/profile" className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-accent transition-colors">
+                                            <UserIcon className="h-4 w-4" />
+                                            My Profile
+                                        </Link>
+                                        <button
+                                            onClick={handleLogout}
+                                            className="flex w-full items-center gap-2 px-3 py-2 rounded-lg text-sm text-destructive hover:bg-destructive/10 transition-colors"
+                                        >
+                                            <LogOut className="h-4 w-4" />
+                                            Logout
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </>
+                    ) : (
+                        <div className="hidden md:flex gap-3 ml-2">
+                            <Button variant="ghost" onClick={() => router.push('/login')}>Login</Button>
+                            <Button onClick={() => router.push('/register')}>Get Started</Button>
+                        </div>
+                    )}
+
+                    {/* Mobile Menu Toggle */}
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="lg:hidden"
+                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                    >
+                        {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                    </Button>
+                </div>
+            </div>
+
+            {/* Mobile Menu */}
+            {mobileMenuOpen && (
+                <div className="lg:hidden border-t bg-card animate-in slide-in-from-top duration-300">
+                    <nav className="flex flex-col p-4 space-y-2">
+                        {user && user.email ? (
                             <>
-                                <Link 
-                                    href="/dashboard/provider" 
-                                    className={`text-sm font-medium transition-colors hover:text-blue-600 ${pathname === '/dashboard/provider' ? 'text-blue-600' : 'text-gray-600 dark:text-gray-300'}`}
-                                >
-                                    Dashboard
-                                </Link>
-                                <Link 
-                                    href="/dashboard/provider/vehicles" 
-                                    className={`text-sm font-medium transition-colors hover:text-blue-600 ${pathname === '/dashboard/provider/vehicles' ? 'text-blue-600' : 'text-gray-600 dark:text-gray-300'}`}
-                                >
-                                    My Vehicles
-                                </Link>
-                                <Link 
-                                    href="/dashboard/provider/bookings" 
-                                    className={`text-sm font-medium transition-colors hover:text-blue-600 ${pathname === '/dashboard/provider/bookings' ? 'text-blue-600' : 'text-gray-600 dark:text-gray-300'}`}
-                                >
-                                    Bookings
-                                </Link>
-                                <Link 
-                                    href="/dashboard/provider/kyc" 
-                                    className={`text-sm font-medium transition-colors hover:text-blue-600 ${pathname === '/dashboard/provider/kyc' ? 'text-blue-600' : 'text-gray-600 dark:text-gray-300'}`}
-                                >
-                                    KYC
-                                </Link>
+                                {navLinks.map((link) => (
+                                    <Link 
+                                        key={link.href}
+                                        href={link.href} 
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className={`flex items-center gap-3 p-3 rounded-xl text-sm font-medium transition-colors ${pathname === link.href ? 'bg-primary/10 text-primary' : 'hover:bg-accent'}`}
+                                    >
+                                        <link.icon className="h-5 w-5" />
+                                        {link.label}
+                                    </Link>
+                                ))}
+                                <div className="pt-4 mt-2 border-t">
+                                    <button
+                                        onClick={handleLogout}
+                                        className="flex w-full items-center gap-3 p-3 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/10"
+                                    >
+                                        <LogOut className="h-5 w-5" />
+                                        Logout
+                                    </button>
+                                </div>
                             </>
                         ) : (
                             <>
-                                <Link 
-                                    href="/dashboard/user/vehicles" 
-                                    className={`text-sm font-medium transition-colors hover:text-blue-600 ${pathname === '/dashboard/user/vehicles' ? 'text-blue-600' : 'text-gray-600 dark:text-gray-300'}`}
-                                >
-                                    Browse Vehicles
-                                </Link>
-                                <Link 
-                                    href="/dashboard/user/bookings" 
-                                    className={`text-sm font-medium transition-colors hover:text-blue-600 ${pathname === '/dashboard/user/bookings' ? 'text-blue-600' : 'text-gray-600 dark:text-gray-300'}`}
-                                >
-                                    My Bookings
-                                </Link>
-                                <Link 
-                                    href="/dashboard/user/kyc" 
-                                    className={`text-sm font-medium transition-colors hover:text-blue-600 ${pathname === '/dashboard/user/kyc' ? 'text-blue-600' : 'text-gray-600 dark:text-gray-300'}`}
-                                >
-                                    KYC
-                                </Link>
-                                <Link 
-                                    href="/dashboard/user/payments" 
-                                    className={`text-sm font-medium transition-colors hover:text-blue-600 ${pathname === '/dashboard/user/payments' ? 'text-blue-600' : 'text-gray-600 dark:text-gray-300'}`}
-                                >
-                                    Payments
-                                </Link>
+                                <Button className="w-full" onClick={() => { router.push('/login'); setMobileMenuOpen(false); }}>Login</Button>
+                                <Button className="w-full" variant="outline" onClick={() => { router.push('/register'); setMobileMenuOpen(false); }}>Register</Button>
                             </>
                         )}
                     </nav>
-                )}
-            </div>
-
-            {/* Right: Profile + Theme Toggle + Logout */}
-            <div className="flex items-center gap-4 relative">
-                {/* Notifications */}
-                {user && user.email && (
-                    <div className="relative">
-                        <button 
-                            onClick={() => setShowNotifications(!showNotifications)}
-                            className="text-xl text-gray-600 dark:text-gray-300 hover:text-blue-600"
-                        >
-                            🔔 {notifications.filter((n:any) => !n.is_read).length > 0 && <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">{notifications.filter((n:any) => !n.is_read).length}</span>}
-                        </button>
-                        {showNotifications && (
-                            <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 border rounded-lg shadow-xl z-50 max-h-96 overflow-y-auto">
-                                <div className="p-2 border-b font-bold text-sm flex justify-between items-center">
-                                    <span>Notifications</span>
-                                    {notifications.some(n => !n.is_read) && (
-                                        <button 
-                                            onClick={() => markAsRead()}
-                                            className="text-[10px] text-blue-600 hover:underline"
-                                        >
-                                            Mark all as read
-                                        </button>
-                                    )}
-                                </div>
-                                {notifications.length > 0 ? notifications.map((n: any) => (
-                                    <div 
-                                        key={n.id} 
-                                        className={`p-3 text-xs border-b cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 ${n.is_read ? 'opacity-60' : 'bg-blue-50 dark:bg-blue-900/20'}`}
-                                        onClick={() => !n.is_read && markAsRead(n.id)}
-                                    >
-                                        {n.message}
-                                        <div className="text-[10px] text-gray-400 mt-1">{new Date(n.created_at).toLocaleString()}</div>
-                                    </div>
-                                )) : <div className="p-4 text-center text-gray-500 text-xs">No notifications</div>}
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {/* Theme Toggle */}
-                {mounted && (
-                    <button
-                        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                        className="text-xl ml-2 text-gray-600 dark:text-gray-300 hover:text-blue-600"
-                        title="Toggle light/dark mode"
-                    >
-                        {theme === "dark" ? "🌞" : "🌙"}
-                    </button>
-                )}
-
-                {/* Profile Info */}
-                {user && user.email ? (
-                    <>
-                        <div className="hidden sm:flex flex-col text-right">
-                            <span className="text-sm font-semibold text-gray-800 dark:text-white">
-                                {user.name || 'User'}
-                            </span>
-                            <span className="text-xs text-gray-500 dark:text-gray-400">
-                                {user.email}
-                            </span>
-                            <span className="text-[10px] font-bold text-blue-500 dark:text-blue-400">
-                                {user.role}
-                            </span>
-                        </div>
-                        {/* Avatar */}
-                        {user.avatar && user.avatar.trim() !== '' ? (
-                            <img
-                                src={user.avatar}
-                                alt="avatar"
-                                className="w-10 h-10 rounded-full object-cover border border-gray-200 dark:border-gray-700"
-                                referrerPolicy="no-referrer"
-                            />
-                        ) : (
-                            <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-300 font-bold border border-blue-200 dark:border-blue-800">
-                                {(user.name || 'U').charAt(0).toUpperCase()}
-                            </div>
-                        )}
-
-                        {/* Logout */}
-                        <button
-                            onClick={handleLogout}
-                            className="ml-4 px-3 py-1 text-sm font-medium text-red-600 border border-red-400 rounded hover:bg-red-50 dark:hover:bg-red-900 dark:text-red-400 dark:border-red-500"
-                        >
-                            Logout
-                        </button>
-                    </>
-                ) : (
-                    <div className="flex gap-2">
-                        <button 
-                            onClick={() => router.push('/login')}
-                            className="px-3 py-1 text-sm font-medium text-blue-600 border border-blue-400 rounded hover:bg-blue-50"
-                        >
-                            Login
-                        </button>
-                        <button 
-                            onClick={() => router.push('/register')}
-                            className="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700"
-                        >
-                            Register
-                        </button>
-                    </div>
-                )}
-            </div>
+                </div>
+            )}
         </header>
     );
 }

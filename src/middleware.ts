@@ -31,19 +31,8 @@ export async function middleware(request: NextRequest) {
     if (request.nextUrl.searchParams.has('token')) {
       return NextResponse.next();
     }
-
-    if (!token) {
-      return NextResponse.redirect(new URL('/login', request.url));
-    }
-    try {
-      const { payload } = await jwtVerify(token, secret);
-      const decoded = payload as any;
-      const userRole = (decoded.role || '').toUpperCase();
-      const dashboard = `/dashboard/${userRole.toLowerCase()}`;
-      return NextResponse.redirect(new URL(dashboard, request.url));
-    } catch (error) {
-      return NextResponse.redirect(new URL('/login', request.url));
-    }
+    // Landing page should be accessible to everyone
+    return NextResponse.next();
   }
 
   // 3. Define protected routes and their allowed roles
@@ -51,7 +40,9 @@ export async function middleware(request: NextRequest) {
     { path: '/dashboard/admin', roles: ['ADMIN'] },
     { path: '/dashboard/provider', roles: ['PROVIDER'] },
     { path: '/dashboard/user', roles: ['USER'] },
+    { path: '/profile', roles: ['ADMIN', 'PROVIDER', 'USER'] },
     { path: '/api/admin', roles: ['ADMIN'] },
+    { path: '/api/notifications', roles: ['ADMIN', 'PROVIDER', 'USER'] },
     // Provider specific API protections could be added here if needed
   ];
 
@@ -104,6 +95,9 @@ export const config = {
     '/api/admin/:path*',
     '/api/provider/:path*',
     '/api/user/:path*',
+    '/api/notifications/:path*',
+    '/api/notifications',
+    '/profile',
     '/',
     '/login',
     '/register',

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 export default function AddVehicle() {
     const [formData, setFormData] = useState({
@@ -18,6 +19,8 @@ export default function AddVehicle() {
         description: '',
         images: ['']
     });
+    const [images, setImages] = useState<File[]>([]);
+    const [previewUrls, setPreviewUrls] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
 
@@ -26,41 +29,40 @@ export default function AddVehicle() {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleImageChange = (index: number, value: string) => {
-        const newImages = [...formData.images];
-        newImages[index] = value;
-        setFormData(prev => ({ ...prev, images: newImages }));
-    };
-
-    const addImageField = () => {
-        setFormData(prev => ({ ...prev, images: [...prev.images, ''] }));
-    };
-
-    const removeImageField = (index: number) => {
-        if (formData.images.length === 1) {
-            setFormData(prev => ({ ...prev, images: [''] }));
-            return;
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            const files = Array.from(e.target.files);
+            setImages(prev => [...prev, ...files]);
+            
+            const newUrls = files.map(file => URL.createObjectURL(file));
+            setPreviewUrls(prev => [...prev, ...newUrls]);
         }
-        const newImages = formData.images.filter((_, i) => i !== index);
-        setFormData(prev => ({ ...prev, images: newImages }));
+    };
+
+    const removeImage = (index: number) => {
+        setImages(prev => prev.filter((_, i) => i !== index));
+        setPreviewUrls(prev => {
+            URL.revokeObjectURL(prev[index]);
+            return prev.filter((_, i) => i !== index);
+        });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         
         // Basic validation
-        if (formData.images.some(img => img.trim() === '')) {
-            alert('Please provide valid image URLs or remove empty fields.');
+        if (images.length === 0) {
+            toast.error('Please upload at least one vehicle image.');
             return;
         }
 
         if (parseInt(formData.year.toString()) < 1900 || parseInt(formData.year.toString()) > new Date().getFullYear() + 1) {
-            alert('Please provide a valid year.');
+            toast.error('Please provide a valid year.');
             return;
         }
 
         if (parseFloat(formData.price_per_day) <= 0) {
-            alert('Price per day must be greater than zero.');
+            toast.error('Price per day must be greater than zero.');
             return;
         }
 
@@ -68,6 +70,23 @@ export default function AddVehicle() {
 
         try {
             const token = localStorage.getItem('token');
+            
+            // Upload images first
+            const uploadedImageUrls: string[] = [];
+            for (const image of images) {
+                const uploadFormData = new FormData();
+                uploadFormData.append('file', image);
+                
+                const uploadRes = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: uploadFormData
+                });
+                const uploadData = await uploadRes.json();
+                if (uploadData.success) {
+                    uploadedImageUrls.push(uploadData.url);
+                }
+            }
+
             const res = await fetch('/api/provider/vehicles', {
                 method: 'POST',
                 headers: {
@@ -76,6 +95,7 @@ export default function AddVehicle() {
                 },
                 body: JSON.stringify({
                     ...formData,
+                    images: uploadedImageUrls,
                     price_per_day: parseFloat(formData.price_per_day),
                     year: parseInt(formData.year.toString())
                 })
@@ -83,14 +103,14 @@ export default function AddVehicle() {
 
             const data = await res.json();
             if (data.success) {
-                alert('Vehicle added successfully and pending admin approval.');
+                toast.success('Vehicle added successfully and pending admin approval.');
                 router.push('/dashboard/provider/vehicles');
             } else {
-                alert(data.message);
+                toast.error(data.message);
             }
         } catch (error) {
             console.error('Error adding vehicle:', error);
-            alert('An error occurred. Please try again.');
+            toast.error('An error occurred. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -132,18 +152,30 @@ export default function AddVehicle() {
                     </div>
 
                     <div className="space-y-4">
-                        <Label>Vehicle Images (URLs)</Label>
-                        {formData.images.map((img, index) => (
-                            <div key={index} className="flex gap-2">
-                                <Input 
-                                    placeholder="https://example.com/image.jpg" 
-                                    value={img} 
-                                    onChange={(e) => handleImageChange(index, e.target.value)} 
-                                />
-                                <Button type="button" variant="ghost" className="text-red-500" onClick={() => removeImageField(index)}>Remove</Button>
-                            </div>
-                        ))}
-                        <Button type="button" variant="outline" onClick={addImageField}>Add Another Image URL</Button>
+                        <Label>Vehicle Images</Label>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            {previewUrls.map((url, index) => (
+                                <div key={index} className="relative aspect-video rounded-lg overflow-hidden group">
+                                    <img src={url} alt={`Preview ${index}`} className="object-cover w-full h-full" />
+                                    <button 
+                                        type="button" 
+                                        onClick={() => removeImage(index)}
+                                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            ))}
+                            <label className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg flex flex-col items-center justify-center p-4 hover:border-blue-500 transition-colors cursor-pointer aspect-video">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                </svg>
+                                <span className="mt-2 text-sm text-gray-500">Upload Image</span>
+                                <input type="file" className="hidden" accept="image/*" multiple onChange={handleImageChange} />
+                            </label>
+                        </div>
                     </div>
 
                     <div className="flex gap-4 pt-4">

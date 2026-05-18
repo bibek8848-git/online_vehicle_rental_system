@@ -4,10 +4,14 @@ import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { toast } from 'sonner';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 
 export default function BookingManagement() {
     const [bookings, setBookings] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [pendingAction, setPendingAction] = useState<{bookingId: string, status: string} | null>(null);
 
     useEffect(() => {
         fetchBookings();
@@ -30,8 +34,14 @@ export default function BookingManagement() {
         }
     };
 
-    const handleAction = async (bookingId: string, status: string) => {
-        if (!confirm(`Are you sure you want to ${status.toLowerCase()} this booking?`)) return;
+    const handleAction = (bookingId: string, status: string) => {
+        setPendingAction({ bookingId, status });
+        setConfirmOpen(true);
+    };
+
+    const executeAction = async () => {
+        if (!pendingAction) return;
+        const { bookingId, status } = pendingAction;
 
         try {
             const token = localStorage.getItem('token');
@@ -45,13 +55,16 @@ export default function BookingManagement() {
             });
             const data = await res.json();
             if (data.success) {
-                alert(`Booking ${status.toLowerCase()}ed successfully.`);
+                toast.success(`Booking ${status.toLowerCase()}ed successfully.`);
                 fetchBookings();
             } else {
-                alert(data.message);
+                toast.error(data.message);
             }
         } catch (error) {
             console.error('Error updating booking:', error);
+            toast.error('An error occurred. Please try again.');
+        } finally {
+            setPendingAction(null);
         }
     };
 
@@ -122,6 +135,16 @@ export default function BookingManagement() {
             <footer className="mt-12 py-6 border-t border-gray-200 dark:border-gray-700 text-center text-gray-500">
                 Secure Drives © 2025
             </footer>
+
+            <ConfirmDialog 
+                isOpen={confirmOpen}
+                onClose={() => setConfirmOpen(false)}
+                onConfirm={executeAction}
+                title={pendingAction?.status === 'APPROVED' ? "Approve Booking" : "Reject Booking"}
+                description={`Are you sure you want to ${pendingAction?.status.toLowerCase()} this booking?`}
+                confirmText={pendingAction?.status === 'APPROVED' ? "Approve" : "Reject"}
+                variant={pendingAction?.status === 'APPROVED' ? "default" : "destructive"}
+            />
         </div>
     );
 }

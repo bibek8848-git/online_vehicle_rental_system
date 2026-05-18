@@ -22,4 +22,7 @@ export const config = {
         failureUrl: process.env.ESEWA_FAILURE_URL || 'http://localhost:3000/api/payment/failure',
     },
     adminEsewa: process.env.ADMIN_ESEWA_NUMBER || '9812345678',
+    openai: {
+        apiKey: process.env.OPENAI_API_KEY,
+    },
 };

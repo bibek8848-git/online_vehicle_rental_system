@@ -34,6 +34,23 @@ export async function ensureTablesExist() {
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
+        CREATE TABLE IF NOT EXISTS kyc_documents (
+          id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+          user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+          document_type TEXT NOT NULL, -- Citizenship, License, Passport, Business Registration
+          document_url TEXT,
+          document_data BYTEA,
+          extracted_name TEXT,
+          extracted_id_number TEXT,
+          extracted_dob TEXT,
+          extracted_address TEXT,
+          extracted_expiry_date TEXT,
+          ocr_data JSONB, -- Storing full OCR results for debugging/manual review
+          status TEXT DEFAULT 'PENDING',
+          rejection_reason TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
         DO $$ 
         BEGIN 
             IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='profile_picture') THEN
@@ -42,18 +59,32 @@ export async function ensureTablesExist() {
 
             -- Ensure password can be null (for OAuth users)
             ALTER TABLE users ALTER COLUMN password DROP NOT NULL;
+
+            -- Add missing columns to kyc_documents
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='kyc_documents' AND column_name='extracted_name') THEN
+                ALTER TABLE kyc_documents ADD COLUMN extracted_name TEXT;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='kyc_documents' AND column_name='extracted_id_number') THEN
+                ALTER TABLE kyc_documents ADD COLUMN extracted_id_number TEXT;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='kyc_documents' AND column_name='extracted_dob') THEN
+                ALTER TABLE kyc_documents ADD COLUMN extracted_dob TEXT;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='kyc_documents' AND column_name='extracted_address') THEN
+                ALTER TABLE kyc_documents ADD COLUMN extracted_address TEXT;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='kyc_documents' AND column_name='extracted_expiry_date') THEN
+                ALTER TABLE kyc_documents ADD COLUMN extracted_expiry_date TEXT;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='kyc_documents' AND column_name='ocr_data') THEN
+                ALTER TABLE kyc_documents ADD COLUMN ocr_data JSONB;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='kyc_documents' AND column_name='rejection_reason') THEN
+                ALTER TABLE kyc_documents ADD COLUMN rejection_reason TEXT;
+            END IF;
         END $$;
 
-        CREATE TABLE IF NOT EXISTS kyc_documents (
-          id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-          user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-          document_type TEXT NOT NULL, -- Citizenship, License, Business Registration
-          document_url TEXT,
-          document_data BYTEA,
-          status TEXT DEFAULT 'PENDING',
-          rejection_reason TEXT,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
+        -- Also ensure consistent types if they were created as TEXT but we want JSONB (though CREATE TABLE IF NOT EXISTS would have used JSONB if it were new)
 
         CREATE TABLE IF NOT EXISTS vehicles (
           id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -102,6 +133,29 @@ export async function ensureTablesExist() {
           type TEXT, -- KYC, BOOKING, PAYMENT, SYSTEM
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
+
+        CREATE TABLE IF NOT EXISTS chat_messages (
+          id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+          session_id TEXT NOT NULL,
+          user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+          role TEXT NOT NULL, -- 'user' or 'assistant'
+          content TEXT NOT NULL,
+          intent TEXT,
+          language TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE IF NOT EXISTS reviews (
+          id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+          booking_id UUID REFERENCES bookings(id) ON DELETE CASCADE,
+          user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+          vehicle_id UUID REFERENCES vehicles(id) ON DELETE CASCADE,
+          rating INTEGER CHECK (rating >= 1 AND rating <= 5),
+          comment TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_chat_messages_session_id ON chat_messages(session_id);
       `);
     } catch (error: any) {
         console.error('Database connection error details:', {

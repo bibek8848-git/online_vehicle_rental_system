@@ -5,10 +5,14 @@ import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 
 export default function MyVehicles() {
     const [vehicles, setVehicles] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [vehicleToDelete, setVehicleToDelete] = useState<string | null>(null);
     const router = useRouter();
 
     useEffect(() => {
@@ -32,23 +36,32 @@ export default function MyVehicles() {
         }
     };
 
-    const handleDelete = async (id: string) => {
-        if (!confirm('Are you sure you want to delete this vehicle?')) return;
+    const handleDelete = (id: string) => {
+        setVehicleToDelete(id);
+        setConfirmOpen(true);
+    };
+
+    const executeDelete = async () => {
+        if (!vehicleToDelete) return;
 
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch(`/api/provider/vehicles/${id}`, {
+            const res = await fetch(`/api/provider/vehicles/${vehicleToDelete}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
             if (data.success) {
-                setVehicles(vehicles.filter((v: any) => v.id !== id));
+                setVehicles(vehicles.filter((v: any) => v.id !== vehicleToDelete));
+                toast.success('Vehicle deleted successfully.');
             } else {
-                alert(data.message);
+                toast.error(data.message);
             }
         } catch (error) {
             console.error('Error deleting vehicle:', error);
+            toast.error('An error occurred. Please try again.');
+        } finally {
+            setVehicleToDelete(null);
         }
     };
 
@@ -79,9 +92,11 @@ export default function MyVehicles() {
                                         <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
                                     )}
                                     <div className={`absolute top-2 right-2 px-2 py-1 rounded text-xs font-bold ${
-                                        vehicle.is_approved ? 'bg-green-500 text-white' : 'bg-yellow-500 text-white'
+                                        vehicle.is_approved ? 'bg-green-500 text-white' : 
+                                        vehicle.rejection_reason ? 'bg-red-500 text-white' : 'bg-yellow-500 text-white'
                                     }`}>
-                                        {vehicle.is_approved ? 'Approved' : 'Pending Approval'}
+                                        {vehicle.is_approved ? 'Approved' : 
+                                         vehicle.rejection_reason ? 'Rejected' : 'Pending Approval'}
                                     </div>
                                 </div>
                                 <CardHeader>
@@ -95,6 +110,9 @@ export default function MyVehicles() {
                                             {vehicle.is_available ? 'Available' : 'Unavailable'}
                                         </span>
                                     </div>
+                                    {vehicle.rejection_reason && !vehicle.is_approved && (
+                                        <p className="text-sm text-red-600 font-medium mb-4">Reason: {vehicle.rejection_reason}</p>
+                                    )}
                                     <div className="flex gap-2">
                                         <Button variant="outline" className="flex-1" onClick={() => router.push(`/dashboard/provider/vehicles/edit/${vehicle.id}`)}>Edit</Button>
                                         <Button variant="destructive" className="flex-1" onClick={() => handleDelete(vehicle.id)}>Delete</Button>
@@ -108,6 +126,16 @@ export default function MyVehicles() {
             <footer className="mt-12 py-6 border-t border-gray-200 dark:border-gray-700 text-center text-gray-500">
                 Secure Drives © 2025
             </footer>
+
+            <ConfirmDialog 
+                isOpen={confirmOpen}
+                onClose={() => setConfirmOpen(false)}
+                onConfirm={executeDelete}
+                title="Delete Vehicle"
+                description="Are you sure you want to delete this vehicle? This action cannot be undone."
+                confirmText="Delete"
+                variant="destructive"
+            />
         </div>
     );
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 export default function PaymentPage({ params }: { params: Promise<{ bookingId: string }> }) {
   const { bookingId } = use(params);
@@ -30,7 +31,7 @@ export default function PaymentPage({ params }: { params: Promise<{ bookingId: s
           if (foundBooking) {
             setBooking(foundBooking);
           } else {
-            alert('Booking not found');
+            toast.error('Booking not found');
             router.push('/dashboard/user/bookings');
           }
         }
@@ -81,12 +82,12 @@ export default function PaymentPage({ params }: { params: Promise<{ bookingId: s
         document.body.appendChild(form);
         form.submit();
       } else {
-        alert(data.message || "Failed to initiate payment.");
+        toast.error(data.message || "Failed to initiate payment.");
         setIsProcessing(false);
       }
     } catch (error) {
       console.error("Payment error:", error);
-      alert("An error occurred during payment initiation.");
+      toast.error("An error occurred during payment initiation.");
       setIsProcessing(false);
     }
   };

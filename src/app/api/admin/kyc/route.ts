@@ -12,6 +12,7 @@ export async function GET(req: NextRequest) {
     try {
         const result = await pgPool.query(`
             SELECT k.id, k.user_id, k.document_type, k.document_url, k.document_data, k.status, k.rejection_reason, k.created_at, 
+                   k.extracted_name, k.extracted_id_number, k.extracted_dob, k.extracted_address, k.extracted_expiry_date,
                    u.name as user_name, u.email as user_email, u.role as user_role
             FROM kyc_documents k
             JOIN users u ON k.user_id = u.id

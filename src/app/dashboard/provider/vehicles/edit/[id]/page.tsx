@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useRouter, useParams } from 'next/navigation';
+import { toast } from 'sonner';
 
 export default function EditVehicle() {
     const [formData, setFormData] = useState({
@@ -19,6 +20,9 @@ export default function EditVehicle() {
         images: [''],
         is_available: true
     });
+    const [images, setImages] = useState<File[]>([]);
+    const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+    const [existingImages, setExistingImages] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const router = useRouter();
@@ -47,11 +51,12 @@ export default function EditVehicle() {
                     registration_number: vehicle.registration_number,
                     price_per_day: vehicle.price_per_day.toString(),
                     description: vehicle.description || '',
-                    images: vehicle.images && vehicle.images.length > 0 ? vehicle.images : [''],
+                    images: vehicle.images && vehicle.images.length > 0 ? vehicle.images : [],
                     is_available: vehicle.is_available
                 });
+                setExistingImages(vehicle.images || []);
             } else {
-                alert(data.message);
+                toast.error(data.message);
                 router.push('/dashboard/provider/vehicles');
             }
         } catch (error) {
@@ -69,22 +74,59 @@ export default function EditVehicle() {
         }));
     };
 
-    const handleImageChange = (index: number, value: string) => {
-        const newImages = [...formData.images];
-        newImages[index] = value;
-        setFormData(prev => ({ ...prev, images: newImages }));
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            const files = Array.from(e.target.files);
+            setImages(prev => [...prev, ...files]);
+            
+            const newUrls = files.map(file => URL.createObjectURL(file));
+            setPreviewUrls(prev => [...prev, ...newUrls]);
+        }
     };
 
-    const addImageField = () => {
-        setFormData(prev => ({ ...prev, images: [...prev.images, ''] }));
+    const removeNewImage = (index: number) => {
+        setImages(prev => prev.filter((_, i) => i !== index));
+        setPreviewUrls(prev => {
+            URL.revokeObjectURL(prev[index]);
+            return prev.filter((_, i) => i !== index);
+        });
+    };
+
+    const removeExistingImage = (index: number) => {
+        setExistingImages(prev => prev.filter((_, i) => i !== index));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        if (existingImages.length === 0 && images.length === 0) {
+            toast.error('Please provide at least one image.');
+            return;
+        }
+
         setIsSaving(true);
 
         try {
             const token = localStorage.getItem('token');
+
+            // Upload new images
+            const uploadedImageUrls: string[] = [];
+            for (const image of images) {
+                const uploadFormData = new FormData();
+                uploadFormData.append('file', image);
+                
+                const uploadRes = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: uploadFormData
+                });
+                const uploadData = await uploadRes.json();
+                if (uploadData.success) {
+                    uploadedImageUrls.push(uploadData.url);
+                }
+            }
+
+            const allImages = [...existingImages, ...uploadedImageUrls];
+
             const res = await fetch(`/api/provider/vehicles/${id}`, {
                 method: 'PUT',
                 headers: {
@@ -93,6 +135,7 @@ export default function EditVehicle() {
                 },
                 body: JSON.stringify({
                     ...formData,
+                    images: allImages,
                     price_per_day: parseFloat(formData.price_per_day),
                     year: parseInt(formData.year.toString())
                 })
@@ -100,14 +143,14 @@ export default function EditVehicle() {
 
             const data = await res.json();
             if (data.success) {
-                alert('Vehicle updated successfully and pending admin approval.');
+                toast.success('Vehicle updated successfully and pending admin approval.');
                 router.push('/dashboard/provider/vehicles');
             } else {
-                alert(data.message);
+                toast.error(data.message);
             }
         } catch (error) {
             console.error('Error updating vehicle:', error);
-            alert('An error occurred. Please try again.');
+            toast.error('An error occurred. Please try again.');
         } finally {
             setIsSaving(false);
         }
@@ -162,16 +205,46 @@ export default function EditVehicle() {
                     </div>
 
                     <div className="space-y-4">
-                        <Label>Vehicle Images (URLs)</Label>
-                        {formData.images.map((img, index) => (
-                            <Input 
-                                key={index} 
-                                placeholder="https://example.com/image.jpg" 
-                                value={img} 
-                                onChange={(e) => handleImageChange(index, e.target.value)} 
-                            />
-                        ))}
-                        <Button type="button" variant="outline" onClick={addImageField}>Add Another Image URL</Button>
+                        <Label>Vehicle Images</Label>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            {/* Existing Images */}
+                            {existingImages.map((url, index) => (
+                                <div key={`existing-${index}`} className="relative aspect-video rounded-lg overflow-hidden group">
+                                    <img src={url} alt={`Existing ${index}`} className="object-cover w-full h-full" />
+                                    <button 
+                                        type="button" 
+                                        onClick={() => removeExistingImage(index)}
+                                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            ))}
+                            {/* New Previews */}
+                            {previewUrls.map((url, index) => (
+                                <div key={`new-${index}`} className="relative aspect-video rounded-lg overflow-hidden group">
+                                    <img src={url} alt={`New Preview ${index}`} className="object-cover w-full h-full border-2 border-blue-500" />
+                                    <button 
+                                        type="button" 
+                                        onClick={() => removeNewImage(index)}
+                                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            ))}
+                            <label className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg flex flex-col items-center justify-center p-4 hover:border-blue-500 transition-colors cursor-pointer aspect-video">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                </svg>
+                                <span className="mt-2 text-sm text-gray-500">Upload Image</span>
+                                <input type="file" className="hidden" accept="image/*" multiple onChange={handleImageChange} />
+                            </label>
+                        </div>
                     </div>
 
                     <div className="flex gap-4 pt-4">

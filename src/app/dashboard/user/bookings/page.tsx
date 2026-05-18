@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function BookingsPage() {
   const [bookings, setBookings] = useState([]);
@@ -15,9 +17,17 @@ export default function BookingsPage() {
             'Authorization': `Bearer ${token}`
           }
         });
+
+        const contentType = res.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          throw new Error("Received non-JSON response from server");
+        }
+
         const data = await res.json();
         if (data.success) {
           setBookings(data.data);
+        } else {
+          toast.error(data.message || "Failed to fetch bookings");
         }
       } catch (error) {
         console.error("Fetch bookings error:", error);
@@ -36,9 +46,9 @@ export default function BookingsPage() {
     const { searchParams } = new URL(window.location.href);
     const status = searchParams.get('status');
     if (status === 'success') {
-      alert('Payment successful! Your booking is confirmed.');
+      toast.success('Payment successful! Your booking is confirmed.');
     } else if (status === 'failed') {
-      alert('Payment failed. Please try again.');
+      toast.error('Payment failed. Please try again.');
     }
   }, []);
 
@@ -47,7 +57,22 @@ export default function BookingsPage() {
       <h1 className="text-2xl font-bold text-gray-900 dark:text-white">My Bookings</h1>
 
       {isLoading ? (
-        <div className="text-center py-12">Loading bookings...</div>
+        <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
+          <div className="p-4 space-y-4">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex items-center space-x-4">
+                <Skeleton className="h-10 w-10 rounded-md" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-1/4" />
+                  <Skeleton className="h-3 w-1/6" />
+                </div>
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-8 w-24 rounded" />
+              </div>
+            ))}
+          </div>
+        </div>
       ) : (
         <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">

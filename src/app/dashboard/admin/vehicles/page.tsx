@@ -3,11 +3,16 @@
 import { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { toast } from 'sonner';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 
 export default function AdminVehiclesPage() {
     const [vehicles, setVehicles] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [rejectionReason, setRejectionReason] = useState<{[key: string]: string}>({});
+    
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [pendingAction, setPendingAction] = useState<{id: string, providerId: string, isApproved: boolean} | null>(null);
 
     useEffect(() => {
         fetchVehicles();
@@ -30,9 +35,17 @@ export default function AdminVehiclesPage() {
 
     const handleAction = async (id: string, providerId: string, isApproved: boolean) => {
         if (!isApproved && !rejectionReason[id]) {
-            alert("Please provide a rejection reason");
+            toast.error("Please provide a rejection reason");
             return;
         }
+
+        setPendingAction({ id, providerId, isApproved });
+        setConfirmOpen(true);
+    };
+
+    const executeAction = async () => {
+        if (!pendingAction) return;
+        const { id, providerId, isApproved } = pendingAction;
 
         try {
             const token = localStorage.getItem('token');
@@ -51,13 +64,16 @@ export default function AdminVehiclesPage() {
             });
             const data = await res.json();
             if (data.success) {
-                alert(`Vehicle ${isApproved ? 'approved' : 'rejected'} successfully`);
+                toast.success(`Vehicle ${isApproved ? 'approved' : 'rejected'} successfully`);
                 fetchVehicles();
             } else {
-                alert(data.message);
+                toast.error(data.message);
             }
         } catch (error) {
             console.error("Failed to update vehicle", error);
+            toast.error("An error occurred. Please try again.");
+        } finally {
+            setPendingAction(null);
         }
     };
 
@@ -80,17 +96,22 @@ export default function AdminVehiclesPage() {
                                         <p className="text-sm text-gray-500">Reg No: {vehicle.registration_number}</p>
                                     </div>
                                     <span className={`px-2 py-1 rounded text-xs font-bold ${
-                                        vehicle.is_approved ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                                        vehicle.is_approved ? 'bg-green-100 text-green-800' : 
+                                        vehicle.rejection_reason ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
                                     }`}>
-                                        {vehicle.is_approved ? 'APPROVED' : 'PENDING APPROVAL'}
+                                        {vehicle.is_approved ? 'APPROVED' : 
+                                         vehicle.rejection_reason ? 'REJECTED' : 'PENDING APPROVAL'}
                                     </span>
                                 </div>
                                 <p className="text-sm text-gray-600 dark:text-gray-300">Provider: {vehicle.provider_name} ({vehicle.provider_email})</p>
                                 <p className="text-sm font-semibold">Price: Rs. {vehicle.price_per_day} / day</p>
+                                {vehicle.rejection_reason && !vehicle.is_approved && (
+                                    <p className="text-sm text-red-600 font-medium">Rejection Reason: {vehicle.rejection_reason}</p>
+                                )}
                                 <p className="text-xs text-gray-500 mt-2 line-clamp-2">{vehicle.description}</p>
                             </div>
 
-                            {!vehicle.is_approved && (
+                            {!vehicle.is_approved && !vehicle.rejection_reason && (
                                 <div className="flex flex-col gap-3 min-w-[250px]">
                                     <Input 
                                         placeholder="Rejection reason"
@@ -114,11 +135,31 @@ export default function AdminVehiclesPage() {
                                     </div>
                                 </div>
                             )}
+                            {!vehicle.is_approved && vehicle.rejection_reason && (
+                                <div className="flex flex-col gap-2 min-w-[200px]">
+                                     <Button 
+                                        className="bg-green-600 hover:bg-green-700"
+                                        onClick={() => handleAction(vehicle.id, vehicle.provider_id, true)}
+                                    >
+                                        Approve Anyway
+                                    </Button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 ))}
                 {vehicles.length === 0 && <div className="text-center text-gray-500 py-10">No vehicles found.</div>}
             </div>
+
+            <ConfirmDialog 
+                isOpen={confirmOpen}
+                onClose={() => setConfirmOpen(false)}
+                onConfirm={executeAction}
+                title={pendingAction?.isApproved ? "Approve Vehicle" : "Reject Vehicle"}
+                description={`Are you sure you want to ${pendingAction?.isApproved ? 'approve' : 'reject'} this vehicle?`}
+                confirmText={pendingAction?.isApproved ? "Approve" : "Reject"}
+                variant={pendingAction?.isApproved ? "default" : "destructive"}
+            />
         </div>
     );
 }

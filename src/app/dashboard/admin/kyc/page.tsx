@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { toast } from 'sonner';
 
 export default function AdminKycPage() {
     const [kycDocs, setKycDocs] = useState<any[]>([]);
@@ -19,6 +20,12 @@ export default function AdminKycPage() {
             const res = await fetch('/api/admin/kyc', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+
+            const contentType = res.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                throw new Error("Received non-JSON response from server");
+            }
+
             const data = await res.json();
             if (data.success) setKycDocs(data.data);
         } catch (error) {
@@ -30,7 +37,7 @@ export default function AdminKycPage() {
 
     const handleAction = async (id: string, userId: string, status: 'APPROVED' | 'REJECTED') => {
         if (status === 'REJECTED' && !rejectionReason[id]) {
-            alert("Please provide a rejection reason");
+            toast.error("Please provide a rejection reason");
             return;
         }
 
@@ -49,15 +56,22 @@ export default function AdminKycPage() {
                     rejection_reason: rejectionReason[id] 
                 })
             });
+
+            const contentType = res.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                throw new Error("Received non-JSON response from server");
+            }
+
             const data = await res.json();
             if (data.success) {
-                alert(`KYC ${status.toLowerCase()} successfully`);
+                toast.success(`KYC ${status.toLowerCase()} successfully`);
                 fetchKycDocs();
             } else {
-                alert(data.message);
+                toast.error(data.message);
             }
         } catch (error) {
             console.error("Failed to update KYC", error);
+            toast.error("An error occurred. Please try again.");
         }
     };
 
@@ -77,7 +91,15 @@ export default function AdminKycPage() {
                                 </div>
                                 <p className="text-sm text-gray-500">{doc.user_email}</p>
                                 <p className="text-sm font-medium">Document: <span className="text-blue-600">{doc.document_type}</span></p>
-                                <p className="text-sm">Status: 
+                                {doc.extracted_name && (
+                                    <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/10 rounded border border-blue-100 dark:border-blue-900/30">
+                                        <p className="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase">OCR Extracted Data</p>
+                                        <p className="text-sm">Name: <span className="font-semibold">{doc.extracted_name}</span></p>
+                                        {doc.extracted_id_number && <p className="text-sm">ID: {doc.extracted_id_number}</p>}
+                                        {doc.extracted_dob && <p className="text-sm">DOB: {doc.extracted_dob}</p>}
+                                    </div>
+                                )}
+                                <p className="text-sm mt-2">Status: 
                                     <span className={`ml-2 px-2 py-0.5 rounded text-xs font-bold ${
                                         doc.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
                                         doc.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :

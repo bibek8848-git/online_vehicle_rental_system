@@ -13,6 +13,8 @@ import { Label } from "@/components/ui/label"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 
+import { AlertCircle, User, Mail, Lock, Shield } from "lucide-react"
+
 export function RegisterForm({
                               className,
                               ...props

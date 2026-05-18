@@ -19,6 +19,12 @@ export default function KYCPage() {
           'Authorization': `Bearer ${token}`
         }
       });
+
+      const contentType = res.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("Received non-JSON response from server");
+      }
+
       const data = await res.json();
       if (data.success) {
         setKycData(data.data);
@@ -54,9 +60,18 @@ export default function KYCPage() {
         body: formData
       });
 
+      const contentType = res.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("Received non-JSON response from server");
+      }
+
       const data = await res.json();
       if (data.success) {
-        setMessage('Document uploaded successfully!');
+        if (data.autoVerified) {
+          setMessage('KYC automatically verified! Your account is now active.');
+        } else {
+          setMessage('Document uploaded successfully! Pending manual review.');
+        }
         setFile(null);
         // Reset file input
         const fileInput = document.getElementById('kyc-file') as HTMLInputElement;
@@ -108,6 +123,7 @@ export default function KYCPage() {
               >
                 <option value="Citizenship">Citizenship</option>
                 <option value="Driving License">Driving License</option>
+                <option value="Passport">Passport</option>
               </select>
             </div>
             <div>
@@ -120,13 +136,14 @@ export default function KYCPage() {
                 required
                 onChange={(e) => setFile(e.target.files?.[0] || null)}
               />
+              <p className="text-[10px] text-gray-400 mt-1">Please ensure the image is clear and your name matches your account name.</p>
             </div>
             <button 
               type="submit"
               disabled={isUploading}
               className="w-full bg-blue-600 text-white py-2 rounded font-bold hover:bg-blue-700 disabled:opacity-50 text-sm"
             >
-              {isUploading ? 'Uploading...' : 'Upload Document'}
+              {isUploading ? 'Processing OCR...' : 'Upload Document'}
             </button>
           </form>
         </div>
@@ -140,6 +157,7 @@ export default function KYCPage() {
                 <div>
                   <p className="text-sm font-bold">{doc.document_type}</p>
                   <p className="text-xs text-gray-500">{new Date(doc.created_at).toLocaleDateString()}</p>
+                  {doc.extracted_name && <p className="text-[10px] text-gray-600 mt-1">OCR Name: {doc.extracted_name}</p>}
                 </div>
                 <div className="flex items-center space-x-4">
                   <span className={`text-[10px] px-2 py-0.5 rounded-full ${

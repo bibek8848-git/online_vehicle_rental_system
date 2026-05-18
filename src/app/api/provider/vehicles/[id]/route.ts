@@ -54,7 +54,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
             `UPDATE vehicles 
              SET make = $1, model = $2, year = $3, registration_number = $4, 
                  price_per_day = $5, description = $6, images = $7, is_available = $8,
-                 is_approved = FALSE -- Reset approval status on edit
+                 is_approved = FALSE, 
+                 rejection_reason = NULL -- Reset rejection reason on edit
              WHERE id = $9`,
             [make, model, year, registration_number, price_per_day, description, images || [], is_available, id]
         );

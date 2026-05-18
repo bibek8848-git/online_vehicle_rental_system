@@ -2,6 +2,33 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Search, Filter, Car, Calendar, MapPin, Tag, ArrowRight } from 'lucide-react';
+
+function VehicleSkeleton() {
+  return (
+    <Card className="overflow-hidden flex flex-col">
+      <Skeleton className="h-48 w-full" />
+      <CardHeader className="p-4 space-y-3">
+        <Skeleton className="h-6 w-3/4" />
+        <Skeleton className="h-4 w-full" />
+      </CardHeader>
+      <CardContent className="p-4 pt-0 flex-grow">
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-4 w-20" />
+        </div>
+      </CardContent>
+      <CardFooter className="p-4 border-t">
+        <Skeleton className="h-10 w-full" />
+      </CardFooter>
+    </Card>
+  );
+}
 
 export default function VehiclesPage() {
   const [vehicles, setVehicles] = useState<any[]>([]);
@@ -45,107 +72,142 @@ export default function VehiclesPage() {
   }, []);
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Available Vehicles</h1>
-      </div>
+    <div className="p-6 lg:p-10 max-w-7xl mx-auto space-y-10">
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Browse Vehicles</h1>
+          <p className="text-muted-foreground mt-1 text-lg">Find the perfect ride for your next adventure.</p>
+        </div>
+      </header>
 
       {/* Search and Filter */}
-      <div className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <div>
-          <label className="block text-xs text-gray-500 mb-1">Search</label>
-          <input 
-            type="text" 
-            placeholder="Search by name/type" 
-            className="w-full text-sm border rounded p-2 bg-transparent"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-        <div>
-          <label className="block text-xs text-gray-500 mb-1">Min Price</label>
-          <input 
-            type="number" 
-            placeholder="Min Price" 
-            className="w-full text-sm border rounded p-2 bg-transparent"
-            value={minPrice}
-            onChange={(e) => setMinPrice(e.target.value)}
-          />
-        </div>
-        <div>
-          <label className="block text-xs text-gray-500 mb-1">Max Price</label>
-          <input 
-            type="number" 
-            placeholder="Max Price" 
-            className="w-full text-sm border rounded p-2 bg-transparent"
-            value={maxPrice}
-            onChange={(e) => setMaxPrice(e.target.value)}
-          />
-        </div>
-        <div>
-          <label className="block text-xs text-gray-500 mb-1">Start Date</label>
-          <input 
-            type="date" 
-            className="w-full text-sm border rounded p-2 bg-transparent"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-          />
-        </div>
-        <div>
-          <label className="block text-xs text-gray-500 mb-1">End Date</label>
-          <input 
-            type="date" 
-            className="w-full text-sm border rounded p-2 bg-transparent"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-          />
-        </div>
-        <div className="flex items-end">
-          <button 
-            onClick={() => fetchVehicles()}
-            className="w-full bg-blue-600 text-white py-2 rounded text-sm hover:bg-blue-700"
-          >
-            Apply Filters
-          </button>
-        </div>
-      </div>
+      <Card className="bg-card shadow-lg border-primary/5">
+        <CardContent className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
+            <div className="lg:col-span-2">
+              <Label className="text-xs font-bold uppercase tracking-wider mb-2 block">Search</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  placeholder="Make, model, or type..." 
+                  className="pl-10"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs font-bold uppercase tracking-wider mb-2 block">Min Price</Label>
+              <Input 
+                type="number" 
+                placeholder="Rs. Min" 
+                value={minPrice}
+                onChange={(e) => setMinPrice(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label className="text-xs font-bold uppercase tracking-wider mb-2 block">Max Price</Label>
+              <Input 
+                type="number" 
+                placeholder="Rs. Max" 
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label className="text-xs font-bold uppercase tracking-wider mb-2 block">Availability From</Label>
+              <Input 
+                type="date" 
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+            </div>
+            <div className="flex items-end">
+              <Button 
+                onClick={() => fetchVehicles()}
+                className="w-full font-bold h-10 rounded-lg shadow-md shadow-primary/10"
+              >
+                <Filter className="mr-2 h-4 w-4" />
+                Apply Filters
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Vehicle Grid */}
       {isLoading ? (
-        <div className="text-center py-12">Loading vehicles...</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {[...Array(6)].map((_, i) => (
+            <VehicleSkeleton key={i} />
+          ))}
+        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {vehicles.length > 0 ? vehicles.map((vehicle: any) => (
-            <div key={vehicle.id} className="bg-white dark:bg-gray-900 rounded-lg overflow-hidden shadow-sm border border-gray-200 dark:border-gray-800 flex flex-col">
-              <div className="h-48 bg-gray-200 dark:bg-gray-800 relative">
+            <Card key={vehicle.id} className="group overflow-hidden flex flex-col hover:border-primary/30 transition-all duration-300 shadow-sm hover:shadow-xl">
+              <div className="h-56 relative overflow-hidden">
                 {vehicle.images && vehicle.images[0] && vehicle.images[0].trim() !== '' ? (
-                  <img src={vehicle.images[0]} alt={vehicle.make} className="w-full h-full object-cover" />
+                  <img 
+                    src={vehicle.images[0]} 
+                    alt={vehicle.make} 
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                  />
                 ) : (
-                  <div className="flex items-center justify-center h-full text-gray-400">No Image</div>
+                  <div className="flex flex-col items-center justify-center h-full bg-muted text-muted-foreground">
+                    <Car className="h-12 w-12 mb-2 opacity-20" />
+                    <span className="text-sm font-medium">No Image Available</span>
+                  </div>
                 )}
-                <div className="absolute top-2 right-2 bg-blue-600 text-white text-xs px-2 py-1 rounded">
-                  Rs. {vehicle.price_per_day}/day
+                <div className="absolute top-4 right-4 bg-background/90 backdrop-blur-sm text-foreground font-bold text-sm px-3 py-1.5 rounded-full shadow-lg border border-border/50">
+                  Rs. {vehicle.price_per_day.toLocaleString()}/day
                 </div>
               </div>
-              <div className="p-4 flex-grow">
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white">{vehicle.make} {vehicle.model}</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{vehicle.description}</p>
-                <div className="flex items-center mt-3 text-xs text-gray-500">
-                  <span className="mr-3">Year: {vehicle.year}</span>
-                  <span>Reg: {vehicle.registration_number}</span>
+              
+              <CardHeader className="p-5">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle className="text-xl group-hover:text-primary transition-colors">
+                      {vehicle.make} {vehicle.model}
+                    </CardTitle>
+                    <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" /> {vehicle.year}
+                      </span>
+                      <span className="h-1 w-1 rounded-full bg-muted-foreground/30" />
+                      <span className="flex items-center gap-1">
+                        <Tag className="h-3 w-3" /> {vehicle.registration_number}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="p-4 border-t border-gray-100 dark:border-gray-800">
-                <Link 
-                  href={`/dashboard/user/vehicles/${vehicle.id}`}
-                  className="block w-full text-center bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white py-2 rounded text-sm hover:bg-gray-200 dark:hover:bg-gray-700 font-medium"
-                >
-                  View Details
-                </Link>
-              </div>
-            </div>
+              </CardHeader>
+              
+              <CardContent className="px-5 pb-5 pt-0 flex-grow">
+                <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+                  {vehicle.description || "No description provided for this vehicle."}
+                </p>
+              </CardContent>
+              
+              <CardFooter className="p-5 border-t bg-muted/5 group-hover:bg-muted/10 transition-colors">
+                <Button asChild variant="outline" className="w-full font-bold group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-all duration-300">
+                  <Link href={`/dashboard/user/vehicles/${vehicle.id}`}>
+                    View Full Details <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </CardFooter>
+            </Card>
           )) : (
-            <div className="col-span-full text-center py-12 text-gray-500">No vehicles found.</div>
+            <div className="col-span-full text-center py-20 flex flex-col items-center">
+              <div className="h-20 w-20 rounded-full bg-muted flex items-center justify-center mb-4">
+                <Search className="h-10 w-10 text-muted-foreground opacity-20" />
+              </div>
+              <h3 className="text-xl font-bold">No vehicles found</h3>
+              <p className="text-muted-foreground">Try adjusting your filters or search terms.</p>
+              <Button variant="link" onClick={() => { setSearch(''); setMinPrice(''); setMaxPrice(''); setStartDate(''); fetchVehicles(); }}>
+                Clear all filters
+              </Button>
+            </div>
           )}
         </div>
       )}

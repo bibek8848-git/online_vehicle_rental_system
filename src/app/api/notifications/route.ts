@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { pgPool } from "@/lib/db";
+import { pgPool, ensureTablesExist } from "@/lib/db";
 import { getAuthenticatedUserOrResponse } from "@/app/api/auth/authorization";
 
 export async function GET(req: NextRequest) {
@@ -7,6 +7,7 @@ export async function GET(req: NextRequest) {
     if ('errorResponse' in auth) return auth.errorResponse;
 
     try {
+        await ensureTablesExist();
         const result = await pgPool.query(
             'SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC LIMIT 50',
             [auth.user.id]
@@ -27,6 +28,7 @@ export async function PATCH(req: NextRequest) {
     if ('errorResponse' in auth) return auth.errorResponse;
 
     try {
+        await ensureTablesExist();
         const { notification_id } = await req.json();
 
         if (notification_id) {

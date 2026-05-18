@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
 
 export default function ProviderKYC() {
     const [kycDocs, setKycDocs] = useState([]);
@@ -26,9 +27,15 @@ export default function ProviderKYC() {
             const res = await fetch('/api/provider/kyc', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+
+            const contentType = res.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                throw new Error("Received non-JSON response from server");
+            }
+
             const data = await res.json();
             if (data.success) {
-                setKycDocs(data.data);
+                setKycDocs(data.data.documents || []);
             }
         } catch (error) {
             console.error('Error fetching KYC:', error);
@@ -40,7 +47,7 @@ export default function ProviderKYC() {
     const handleUpload = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!file) {
-            alert('Please select a file to upload.');
+            toast.error('Please select a file to upload.');
             return;
         }
         setIsUploading(true);
@@ -58,18 +65,29 @@ export default function ProviderKYC() {
                 },
                 body: dataForm
             });
+
+            const contentType = res.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                throw new Error("Received non-JSON response from server");
+            }
+
             const data = await res.json();
             if (data.success) {
-                alert('Document uploaded successfully.');
+                if (data.autoVerified) {
+                    toast.success('KYC automatically verified!');
+                } else {
+                    toast.success('Document uploaded successfully. Pending manual review.');
+                }
                 setFile(null);
                 const fileInput = document.getElementById('documentFile') as HTMLInputElement;
                 if (fileInput) fileInput.value = '';
                 fetchKYC();
             } else {
-                alert(data.message);
+                toast.error(data.message);
             }
         } catch (error) {
             console.error('Error uploading KYC:', error);
+            toast.error('An error occurred. Please try again.');
         } finally {
             setIsUploading(false);
         }
@@ -98,8 +116,10 @@ export default function ProviderKYC() {
                                         value={formData.documentType}
                                         onChange={(e) => setFormData({ ...formData, documentType: e.target.value })}
                                     >
-                                        <option value="Business Registration">Business Registration</option>
                                         <option value="Citizenship">Citizenship</option>
+                                        <option value="License">Driving License</option>
+                                        <option value="Passport">Passport</option>
+                                        <option value="Business Registration">Business Registration</option>
                                         <option value="Vehicle Blue Book">Vehicle Blue Book</option>
                                     </select>
                                 </div>
@@ -140,6 +160,7 @@ export default function ProviderKYC() {
                                             <div>
                                                 <p className="font-bold">{doc.document_type}</p>
                                                 <p className="text-xs text-gray-500">Uploaded on {new Date(doc.created_at).toLocaleDateString()}</p>
+                                                {doc.extracted_name && <p className="text-[10px] text-gray-600 mt-1">OCR Name: {doc.extracted_name}</p>}
                                                 <a href={doc.document_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-xs hover:underline mt-2 inline-block">View Document</a>
                                             </div>
                                             <div className={`px-2 py-1 rounded text-[10px] font-bold ${
