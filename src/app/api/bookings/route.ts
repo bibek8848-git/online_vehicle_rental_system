@@ -161,3 +161,55 @@ export async function PATCH(req: NextRequest) {
         return NextResponse.json({ success: false, message: "Failed to update booking" }, { status: 500 });
     }
 }
+
+export async function DELETE(req: NextRequest) {
+    const auth = await getAuthenticatedUserOrResponse(req);
+    if ('errorResponse' in auth) return auth.errorResponse;
+
+    try {
+        const { booking_id } = await req.json();
+        if (!booking_id) {
+            return NextResponse.json({ success: false, message: "Booking ID is required" }, { status: 400 });
+        }
+
+        const bookingResult = await pgPool.query(
+            `SELECT b.*, v.provider_id, b.user_id
+             FROM bookings b
+             JOIN vehicles v ON b.vehicle_id = v.id
+             WHERE b.id = $1`,
+            [booking_id]
+        );
+
+        if (bookingResult.rows.length === 0) {
+            return NextResponse.json({ success: false, message: "Booking not found" }, { status: 404 });
+        }
+
+        const booking = bookingResult.rows[0];
+        if (booking.user_id !== auth.user.id) {
+            return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 403 });
+        }
+
+        if (booking.status !== 'PENDING') {
+            return NextResponse.json({ success: false, message: "Only pending bookings can be cancelled by the user." }, { status: 400 });
+        }
+
+        const cancelResult = await pgPool.query(
+            `UPDATE bookings SET status = 'CANCELLED' WHERE id = $1 RETURNING *`,
+            [booking_id]
+        );
+
+        await pgPool.query(
+            'INSERT INTO notifications (user_id, message, type) VALUES ($1, $2, $3)',
+            [booking.provider_id, `A booking request was cancelled by the user.`, 'BOOKING']
+        );
+
+        return NextResponse.json({
+            success: true,
+            message: 'Booking request cancelled successfully',
+            data: cancelResult.rows[0]
+        });
+    } catch (error) {
+        console.error('Booking delete error:', error);
+        return NextResponse.json({ success: false, message: "Failed to cancel booking" }, { status: 500 });
+    }
+}

@@ -1,6 +1,6 @@
 export const config = {
     jwtKey: {
-        jwtKey: process.env.JWT_SECRET,
+        jwtKey: process.env.JWT_SECRET || 'MySuperSecretKeyPass12345',
     },
     google: {
         clientId: process.env.GOOGLE_CLIENT_ID,

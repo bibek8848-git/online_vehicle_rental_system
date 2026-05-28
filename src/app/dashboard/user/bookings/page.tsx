@@ -5,8 +5,9 @@ import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function BookingsPage() {
-  const [bookings, setBookings] = useState([]);
+  const [bookings, setBookings] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [cancellingBooking, setCancellingBooking] = useState<number | null>(null);
 
   useEffect(() => {
     async function fetchBookings() {
@@ -40,6 +41,39 @@ export default function BookingsPage() {
 
   const handlePayment = (bookingId: number) => {
     window.location.href = `/dashboard/user/payments/${bookingId}`;
+  };
+
+  const handleCancel = async (bookingId: number) => {
+    setCancellingBooking(bookingId);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/bookings', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ booking_id: bookingId })
+      });
+
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Unexpected response from server');
+      }
+
+      const data = await res.json();
+      if (data.success) {
+        setBookings((prev: any[]) => prev.filter((booking: any) => booking.id !== bookingId));
+        toast.success(data.message || 'Booking request cancelled successfully');
+      } else {
+        toast.error(data.message || 'Failed to cancel booking');
+      }
+    } catch (error) {
+      console.error('Cancel booking error:', error);
+      toast.error('Failed to cancel booking. Please try again.');
+    } finally {
+      setCancellingBooking(null);
+    }
   };
 
   useEffect(() => {
@@ -111,7 +145,7 @@ export default function BookingsPage() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                       booking.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
-                      booking.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
+                      booking.status === 'REJECTED' || booking.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
                       'bg-yellow-100 text-yellow-800'
                     }`}>
                       {booking.status}
@@ -124,13 +158,22 @@ export default function BookingsPage() {
                       {booking.payment_status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-y-2">
                     {booking.status === 'APPROVED' && booking.payment_status === 'UNPAID' && (
                       <button 
                         onClick={() => handlePayment(booking.id)}
                         className="text-blue-600 hover:text-blue-900 bg-blue-50 px-3 py-1 rounded"
                       >
                         Pay with eSewa
+                      </button>
+                    )}
+                    {booking.status === 'PENDING' && (
+                      <button
+                        disabled={cancellingBooking === booking.id}
+                        onClick={() => handleCancel(booking.id)}
+                        className="text-red-600 hover:text-red-900 bg-red-50 px-3 py-1 rounded disabled:opacity-60 disabled:cursor-not-allowed"
+                      >
+                        {cancellingBooking === booking.id ? 'Cancelling...' : 'Cancel Request'}
                       </button>
                     )}
                   </td>

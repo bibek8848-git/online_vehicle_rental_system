@@ -162,6 +162,7 @@ export default function Header() {
         { href: '/dashboard/provider/bookings', label: 'Bookings', icon: Calendar },
         { href: '/dashboard/provider/kyc', label: 'KYC', icon: ShieldCheck },
     ] : [
+        { href: '/dashboard/user', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/dashboard/user/vehicles', label: 'Browse Vehicles', icon: Car },
         { href: '/dashboard/user/bookings', label: 'My Bookings', icon: Calendar },
         { href: '/dashboard/user/kyc', label: 'KYC', icon: ShieldCheck },

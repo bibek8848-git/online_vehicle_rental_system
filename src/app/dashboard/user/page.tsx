@@ -195,8 +195,12 @@ export default function UserDashboard() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm">If you encounter any issues with your booking or have questions about our services, don't hesitate to reach out.</p>
-            <Button variant="secondary" className="w-full font-bold">Contact Support</Button>
-            <Button variant="outline" className="w-full bg-transparent border-white/20 text-white hover:bg-white/10 font-bold">Read FAQs</Button>
+            <Button asChild variant="secondary" className="w-full font-bold">
+              <Link href="/support">Contact Support</Link>
+            </Button>
+            <Button asChild variant="outline" className="w-full bg-transparent border-white/20 text-white hover:bg-white/10 font-bold">
+              <Link href="/faqs">Read FAQs</Link>
+            </Button>
           </CardContent>
         </Card>
       </div>

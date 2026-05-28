@@ -189,7 +189,9 @@ export default function ProviderDashboard() {
                             <div className="p-3 bg-white/10 rounded-xl border border-white/20">
                                 <p className="text-sm">Keep your calendar up to date to avoid booking cancellations.</p>
                             </div>
-                            <Button variant="secondary" className="w-full mt-4 font-bold">View Full Guide</Button>
+                            <Button asChild variant="secondary" className="w-full mt-4 font-bold">
+                                <Link href="/dashboard/provider/guidelines">View Full Guide</Link>
+                            </Button>
                         </CardContent>
                     </Card>
                 </div>
