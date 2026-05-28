@@ -38,6 +38,13 @@ export function RegisterForm({
         setError("")
         setIsLoading(true)
 
+        // Validate password length
+        if (password.length < 8) {
+            setError("Password must be at least 8 characters")
+            setIsLoading(false)
+            return
+        }
+
         // Validate passwords match
         if (password !== confirmPassword) {
             setError("Passwords do not match")
@@ -140,6 +147,7 @@ export function RegisterForm({
                                         id="password" 
                                         type="password" 
                                         required 
+                                        minLength={8}
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                     />

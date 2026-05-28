@@ -64,28 +64,22 @@ export default function PerformanceAnalytics() {
 
     return (
         <div className="space-y-8">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div className="flex items-center gap-2 bg-muted p-1 rounded-lg">
-                    {[
-                        { label: '7 Days', value: '7days' },
-                        { label: '30 Days', value: '30days' },
-                        { label: '6 Months', value: '6months' }
-                    ].map((r) => (
-                        <Button 
-                            key={r.value}
-                            variant={range === r.value ? "secondary" : "ghost"} 
-                            size="sm"
-                            className={range === r.value ? "bg-background shadow-sm" : ""}
-                            onClick={() => setRange(r.value)}
-                        >
-                            {r.label}
-                        </Button>
-                    ))}
-                </div>
-                <Button variant="outline" size="sm">
-                    <Download className="mr-2 h-4 w-4" />
-                    Export Report
-                </Button>
+            <div className="flex flex-wrap items-center gap-4 bg-muted p-1 rounded-lg">
+                {[
+                    { label: '7 Days', value: '7days' },
+                    { label: '30 Days', value: '30days' },
+                    { label: '6 Months', value: '6months' }
+                ].map((r) => (
+                    <Button 
+                        key={r.value}
+                        variant={range === r.value ? "secondary" : "ghost"} 
+                        size="sm"
+                        className={range === r.value ? "bg-background shadow-sm" : ""}
+                        onClick={() => setRange(r.value)}
+                    >
+                        {r.label}
+                    </Button>
+                ))}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -267,7 +261,7 @@ export default function PerformanceAnalytics() {
                                         cy="50%"
                                         outerRadius={80}
                                         dataKey="value"
-                                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                        label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
                                     >
                                         <Cell fill="#10b981" />
                                         <Cell fill="#ef4444" />

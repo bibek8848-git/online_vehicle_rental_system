@@ -135,10 +135,42 @@ export default function AdminDashboard() {
                         <CardTitle>Platform Health</CardTitle>
                         <CardDescription>System performance and uptime.</CardDescription>
                     </CardHeader>
-                    <CardContent className="h-[200px] flex items-center justify-center border-t bg-muted/20">
-                        <div className="text-center">
-                            <BarChart3 className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
-                            <p className="text-muted-foreground font-medium">System metrics are stable.</p>
+                    <CardContent className="grid gap-4 border-t bg-muted/20 p-6">
+                        <div className="grid gap-3">
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium">Uptime</span>
+                                {loading ? (
+                                    <Skeleton className="h-5 w-20" />
+                                ) : (
+                                    <span className="text-sm text-slate-700">{stats?.platformHealth?.uptimeText || 'N/A'}</span>
+                                )}
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium">DB status</span>
+                                {loading ? (
+                                    <Skeleton className="h-5 w-20" />
+                                ) : (
+                                    <span className={`text-sm font-semibold ${stats?.platformHealth?.dbStatus === 'Online' ? 'text-green-600' : 'text-red-600'}`}>
+                                        {stats?.platformHealth?.dbStatus || 'Unknown'}
+                                    </span>
+                                )}
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium">Bookings last 24h</span>
+                                {loading ? (
+                                    <Skeleton className="h-5 w-16" />
+                                ) : (
+                                    <span className="text-sm">{stats?.platformHealth?.activeBookingsLast24h ?? 0}</span>
+                                )}
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium">Successful payments</span>
+                                {loading ? (
+                                    <Skeleton className="h-5 w-16" />
+                                ) : (
+                                    <span className="text-sm">{stats?.platformHealth?.successfulPaymentsLast24h ?? 0}</span>
+                                )}
+                            </div>
                         </div>
                     </CardContent>
                 </Card>

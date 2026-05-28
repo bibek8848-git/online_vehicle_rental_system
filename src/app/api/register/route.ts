@@ -21,6 +21,13 @@ export async function POST(req: NextRequest) {
             }, { status: 400 });
         }
 
+        if (password.length < 8) {
+            return NextResponse.json({
+                success: false,
+                message: "Password must be at least 8 characters"
+            }, { status: 400 });
+        }
+
         // Validate role
         const allowedRoles = ['USER', 'PROVIDER'];
         const userRole = role && allowedRoles.includes(role) ? role : 'USER';

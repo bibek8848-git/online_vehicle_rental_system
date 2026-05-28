@@ -156,18 +156,26 @@ export default function Header() {
         );
     }
 
-    const navLinks = user.role === 'PROVIDER' ? [
+    const navLinks = user.role === 'ADMIN' ? [
+        { href: '/dashboard/admin', label: 'Dashboard', icon: LayoutDashboard },
+        { href: '/dashboard/admin/users', label: 'Users', icon: UserIcon },
+        { href: '/dashboard/admin/providers', label: 'Providers', icon: UserIcon },
+        { href: '/dashboard/admin/kyc', label: 'KYC', icon: ShieldCheck },
+        { href: '/dashboard/admin/vehicles', label: 'Vehicles', icon: Car },
+        { href: '/dashboard/admin/bookings', label: 'Bookings', icon: Calendar },
+        { href: '/dashboard/admin/payments', label: 'Payments', icon: CreditCard },
+    ] : user.role === 'PROVIDER' ? [
         { href: '/dashboard/provider', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/dashboard/provider/vehicles', label: 'My Vehicles', icon: Car },
         { href: '/dashboard/provider/bookings', label: 'Bookings', icon: Calendar },
         { href: '/dashboard/provider/kyc', label: 'KYC', icon: ShieldCheck },
-    ] : [
+    ] : user.role === 'USER' ? [
         { href: '/dashboard/user', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/dashboard/user/vehicles', label: 'Browse Vehicles', icon: Car },
         { href: '/dashboard/user/bookings', label: 'My Bookings', icon: Calendar },
         { href: '/dashboard/user/kyc', label: 'KYC', icon: ShieldCheck },
         { href: '/dashboard/user/payments', label: 'Payments', icon: CreditCard },
-    ];
+    ] : [];
 
     return (
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">

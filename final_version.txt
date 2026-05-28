@@ -1,0 +1,1471 @@
+1. Project Title
+
+Secure Drives - Online Vehicle Rental System
+
+2. Student and Project Information
+
+Project name: Secure Drives - Online Vehicle Rental System
+Student name: Not found in current project files.
+Student ID: Not found in current project files.
+Supervisor: Not found in current project files.
+Institution/course details: Not found in current project files.
+Submission date: Not found in current project files.
+
+Reference files found:
+- features.txt
+- features_and_development.txt
+- google-auth-setup.md
+- README.md
+- img.png
+
+Uploaded report or poster files such as PDF, DOCX, or PPTX were not found in the current workspace. The file img.png appears to be a screenshot of an IDE menu, not a project poster.
+
+3. Project Overview
+
+Secure Drives is a full-stack online vehicle rental platform designed for the Nepalese market. It digitizes the traditional vehicle rental process by allowing customers to register, verify identity, browse approved vehicles, request bookings, and pay digitally through eSewa. It also allows vehicle providers to list vehicles, manage booking requests, and view fleet analytics. Administrators control platform trust by reviewing KYC documents, approving vehicles, and monitoring users, bookings, and payments.
+
+The system addresses problems common in manual rental businesses, such as phone-call based booking, paper records, double-booking, poor transparency, fraud risk, weak identity verification, and cash/manual payment issues. It supports three main roles: Customer/User, Provider, and Administrator.
+
+4. Problem Statement
+
+Traditional vehicle rental services in Nepal often depend on phone calls, cash payment, paper records, and manual identity checks. This creates several issues:
+- Customers do not always know which vehicles are available.
+- Providers may accidentally double-book the same vehicle.
+- Rental records can be lost or incorrectly maintained.
+- Identity checking is slow and inconsistent.
+- Cash payment creates tracking and transparency problems.
+- Trust is low because fake accounts and unverified renters/providers are possible.
+- There is no centralized marketplace where customers can compare vehicles from different providers.
+
+Secure Drives solves these problems by providing a centralized web platform with authentication, KYC verification, vehicle approval, date-based booking checks, digital payment tracking, notifications, and dashboards for each role.
+
+5. Aims and Objectives
+
+Aim:
+To build a secure, multi-role online vehicle rental platform for Nepal that connects verified customers and verified vehicle providers through a digital booking and payment system.
+
+Objectives:
+- Implement multi-role authentication for Customer/User, Provider, and Admin.
+- Use JWT and middleware to protect routes and APIs.
+- Use bcrypt to securely hash passwords.
+- Provide Google OAuth login.
+- Implement KYC verification with document upload, OCR, and admin review.
+- Allow providers to add, edit, delete, and manage vehicles.
+- Allow customers to browse approved vehicles and view details.
+- Prevent double-booking using date conflict checks.
+- Implement booking request and approval workflows.
+- Integrate eSewa payment initiation and callback handling.
+- Provide admin dashboard for platform monitoring.
+- Provide provider dashboard and analytics.
+- Provide customer dashboard, booking history, and payment history.
+- Provide notifications for KYC, booking, vehicle, and payment events.
+- Build a responsive UI using Tailwind CSS.
+
+6. Academic Question
+
+The exact academic question from a formal report was not found in current project files. Based on the project description, a suitable academic question is:
+
+"How can a secure full-stack online vehicle rental platform improve trust, transparency, and digital transformation in Nepal's vehicle rental sector?"
+
+Academic relevance:
+- Local businesses in Nepal can use the platform to reach more customers digitally.
+- Customers can compare and book vehicles without relying only on phone calls.
+- KYC verification improves trust and reduces fraud risk.
+- eSewa supports Nepal-focused digital payment.
+- The project develops student skills in full-stack development, database design, authentication, security, API development, payment integration, OCR, project management, and professional documentation.
+
+7. Main Users / Roles
+
+A. Customer/User
+
+Found in project codebase.
+Customers can:
+- Register and login with email/password.
+- Login using Google OAuth.
+- Upload KYC documents.
+- View KYC status.
+- Browse approved and available vehicles.
+- View vehicle details.
+- Create booking requests.
+- Pay through eSewa after booking approval in the UI flow.
+- View booking history.
+- View payment history.
+- Receive notifications.
+- Use rule-based chatbot support.
+- Update profile information.
+
+B. Provider
+
+Found in project codebase.
+Providers can:
+- Register and login.
+- Use Google OAuth login, although new Google users are created with default USER role unless manually updated later.
+- Complete KYC through provider KYC route/page.
+- Add vehicles.
+- Edit vehicles.
+- Delete vehicles.
+- View provider fleet.
+- Track vehicle approval status.
+- Receive booking requests.
+- Approve or reject booking requests.
+- View booking status.
+- View analytics dashboard.
+- Track total bookings, revenue, top vehicle, monthly trends, and fleet availability.
+
+C. Administrator
+
+Found in project codebase.
+Admins can:
+- Login using seeded admin credentials configured through environment variables.
+- Access protected admin dashboard.
+- View users and providers.
+- Review KYC documents.
+- Approve or reject KYC submissions with rejection reason.
+- Review vehicle listings.
+- Approve or reject vehicles with rejection reason.
+- View all bookings.
+- View all payments.
+- View revenue/statistics.
+- Monitor platform activity.
+
+8. Complete Feature List
+
+Features actually found in the codebase:
+- Normal registration.
+- Email/password login.
+- Google OAuth login.
+- JWT authentication.
+- bcrypt password hashing.
+- Role-based access control.
+- Middleware route protection.
+- Customer/User dashboard.
+- Provider dashboard.
+- Admin dashboard.
+- KYC document upload.
+- OCR processing using Tesseract.js.
+- Image preprocessing using Sharp.
+- English and Nepali OCR language configuration.
+- Fuzzy name matching.
+- Manual admin KYC review.
+- Vehicle listing by provider.
+- Vehicle edit and delete by provider.
+- Vehicle approval workflow by admin.
+- Vehicle browsing and vehicle detail page.
+- Date-based availability checking.
+- Booking request creation.
+- Double-booking prevention.
+- Provider booking approval/rejection.
+- Booking status tracking.
+- eSewa payment initiation.
+- eSewa success/failure callback routes.
+- HMAC SHA-256 signature generation.
+- Payment history.
+- Notification system.
+- Rule-based chatbot with chat history.
+- Provider analytics using Recharts.
+- Profile update.
+- Password update.
+- File upload to public/uploads for vehicle images.
+- KYC document storage as BYTEA in PostgreSQL.
+- Admin statistics.
+
+9. Tech Stack Used
+
+Actual package versions are based on package.json.
+
+- Next.js 15.3.3: Full-stack React framework with App Router and API routes. The request mentioned Next.js 14, but package.json uses Next.js 15.3.3.
+- React 19.0.0 and React DOM 19.0.0: Frontend UI.
+- TypeScript 5: Static typing.
+- Tailwind CSS 4: Utility-first styling.
+- PostgreSQL: Relational database.
+- pg 8.16.3: PostgreSQL client and connection pool.
+- Next.js API Routes: Backend APIs inside the same codebase.
+- JWT: Token-based authentication.
+- jsonwebtoken 9.0.2: JWT signing/verifying in API routes.
+- jose 6.1.3: JWT verification in middleware.
+- bcrypt 6.0.0: Password hashing.
+- Google OAuth 2.0: Social login flow using manual OAuth fetch calls.
+- eSewa payment gateway: Nepal-focused payment integration.
+- Tesseract.js 7.0.0: OCR text extraction.
+- Sharp 0.34.5: Image preprocessing before OCR.
+- Radix UI packages: UI primitives.
+- Lucide React: Icons.
+- Recharts 3.8.1: Provider analytics charts.
+- Sonner 2.0.7: Toast notifications.
+- uuid 13.0.0: Unique file/session IDs.
+- date-fns 4.1.0: Date utilities, though usage is limited in the current codebase.
+- class-variance-authority, clsx, tailwind-merge: Styling utilities.
+- next-themes: Theme support.
+- Node.js and npm: Runtime and package management.
+- GitHub and Visual Studio Code: Mentioned as development tools by context, but repository remote details were not read because Git status is blocked by safe-directory ownership.
+
+10. Project Architecture
+
+The project follows a three-tier architecture inside a unified Next.js codebase:
+
+Frontend/UI layer:
+- Implemented in src/app pages and src/components.
+- Includes landing page, login/register pages, dashboards, forms, tables, charts, notifications, and chatbot.
+
+Backend/API layer:
+- Implemented in src/app/api.
+- Handles authentication, KYC, vehicles, bookings, payments, admin actions, provider actions, notifications, uploads, and chatbot.
+
+Database layer:
+- Implemented through PostgreSQL using src/lib/db.ts.
+- Tables are created automatically by ensureTablesExist().
+- Database queries use pgPool.query().
+
+11. Folder Structure
+
+Actual folders/files found:
+
+- src/app: Next.js App Router pages and API routes.
+- src/app/api: Backend API routes.
+- src/app/api/auth/google and callback: Google OAuth flow.
+- src/app/api/admin: Admin APIs for users, providers, KYC, vehicles, bookings, payments, and stats.
+- src/app/api/provider: Provider APIs for vehicles, bookings, KYC, and analytics.
+- src/app/api/user: User APIs for profile, password, vehicles, bookings, KYC, and payments.
+- src/app/dashboard/admin: Admin dashboard pages.
+- src/app/dashboard/provider: Provider dashboard pages.
+- src/app/dashboard/user: Customer/User dashboard pages.
+- src/app/login and src/app/register: Authentication pages.
+- src/app/profile: Profile page.
+- src/components: Shared React components.
+- src/components/ui: UI primitives.
+- src/lib: Database, config, auth, eSewa, OCR, utility files.
+- src/lib/image: Static vehicle images.
+- src/middleware.ts: Middleware route protection.
+- public/uploads: Uploaded vehicle images.
+- package.json: Dependencies and scripts.
+- next.config.ts: Next.js config.
+- tsconfig.json: TypeScript config.
+- postcss.config.mjs: PostCSS/Tailwind setup.
+- eslint.config.mjs: ESLint config.
+- .env: Environment variables. Real values are not exposed here.
+- README.md: Default Next.js readme.
+- google-auth-setup.md: Google OAuth setup guide.
+- features.txt and features_and_development.txt: Project notes.
+
+12. Frontend Explanation
+
+The frontend is built with Next.js App Router and client components.
+
+Main frontend features:
+- Landing page: src/app/page.tsx introduces Secure Drives and links to register/browse.
+- Register page: uses src/components/register-form.tsx.
+- Login page: uses src/components/login-form.tsx.
+- Google OAuth login UI: buttons redirect to /api/auth/google.
+- SearchParamHandler: src/app/SearchParamHandler.tsx reads OAuth token from URL, stores it in localStorage and cookies, then cleans URL.
+- Header: src/components/Header.tsx shows navigation based on user role, notification bell, theme toggle, profile menu, and logout.
+- Customer dashboard: src/app/dashboard/user/page.tsx shows active bookings, KYC status, and total spent.
+- Provider dashboard: src/app/dashboard/provider/page.tsx shows fleet count, pending approvals, bookings, KYC status, and analytics.
+- Admin dashboard: src/app/dashboard/admin/page.tsx shows platform statistics.
+- Vehicle catalogue: src/app/dashboard/user/vehicles/page.tsx fetches approved vehicles with filters.
+- Vehicle detail page: src/app/dashboard/user/vehicles/[id]/page.tsx shows details and booking form.
+- KYC upload interface: customer and provider KYC pages upload documents.
+- Payment page: src/app/dashboard/user/payments/[bookingId]/page.tsx initiates eSewa payment by creating and submitting a form.
+- Payment success/failure UI: handled through redirects to bookings page with status query.
+- Notification UI: Header polls /api/notifications every 30 seconds.
+- Analytics charts: src/components/PerformanceAnalytics.tsx uses Recharts.
+- Chatbot UI: src/components/Chatbot.tsx provides floating support chat.
+- Responsive design: Tailwind CSS classes are used across pages.
+- Form validation: frontend checks required fields, password match, image presence, year, and price in selected forms.
+- API calls: frontend uses fetch() with Authorization: Bearer token.
+
+13. Backend Explanation
+
+The backend uses Next.js API routes in src/app/api.
+
+Backend modules:
+- Authentication APIs: register, login, Google OAuth.
+- KYC APIs: user/provider upload, admin review.
+- Vehicle APIs: provider CRUD, user/public listing, admin approval.
+- Booking APIs: user booking, shared booking route, provider approval/rejection, admin viewing.
+- Payment APIs: eSewa initiation, success/failure callbacks, user/admin payment history.
+- Admin APIs: stats, users, providers, KYC, vehicles, bookings, payments.
+- Provider APIs: vehicles, bookings, KYC, analytics.
+- Notification API: list and mark notifications read.
+- Chatbot API: rule-based responses and chat history.
+- Upload API: stores uploaded files in public/uploads.
+
+Security and validation:
+- API routes use getAuthenticatedUserOrResponse() and authorizeRole().
+- Missing fields return 400 errors.
+- Unauthorized requests return 401.
+- Forbidden role access returns 403.
+- Not found records return 404.
+- Conflicts such as duplicate vehicle registration or double booking return 409.
+- try/catch blocks handle server errors with 500 responses.
+- Database queries mostly use parameterized SQL.
+
+14. Database Connection
+
+Database file path: src/lib/db.ts
+Config file path: src/lib/config.ts
+Database: PostgreSQL
+Library: pg
+
+The connection uses:
+- DATABASE_URL from environment variables.
+- config.database.dbUrl in src/lib/config.ts.
+- new Pool({ connectionString: config.database.dbUrl, ssl: { rejectUnauthorized: false } }).
+
+The pool is cached on globalThis in development to avoid creating many connections during Next.js hot reload. Queries are executed using pgPool.query().
+
+PostgreSQL is suitable because the project has strongly related data: users, vehicles, bookings, payments, KYC documents, notifications, chat messages, and reviews. Foreign keys maintain relationships between customers, providers, vehicles, and transactions.
+
+15. Database Tables / Models
+
+All tables are created in src/lib/db.ts by ensureTablesExist().
+
+users
+Purpose: Stores all account types.
+Important fields:
+- id UUID primary key default gen_random_uuid()
+- name TEXT NOT NULL
+- email TEXT UNIQUE NOT NULL
+- password TEXT nullable
+- role TEXT default USER
+- profile_picture TEXT
+- kyc_status TEXT default PENDING
+- kyc_rejection_reason TEXT
+- created_at TIMESTAMP
+Relationships:
+- users.id is referenced by vehicles.provider_id, bookings.user_id, payments.user_id, kyc_documents.user_id, notifications.user_id, chat_messages.user_id, and reviews.user_id.
+
+kyc_documents
+Purpose: Stores identity/business documents and OCR result.
+Fields:
+- id UUID primary key
+- user_id UUID references users(id) ON DELETE CASCADE
+- document_type TEXT
+- document_url TEXT
+- document_data BYTEA
+- extracted_name TEXT
+- extracted_id_number TEXT
+- extracted_dob TEXT
+- extracted_address TEXT
+- extracted_expiry_date TEXT
+- ocr_data JSONB
+- status TEXT default PENDING
+- rejection_reason TEXT
+- created_at TIMESTAMP
+Use: User/provider KYC upload and admin review.
+
+vehicles
+Purpose: Stores provider vehicle listings.
+Fields:
+- id UUID primary key
+- provider_id UUID references users(id) ON DELETE CASCADE
+- make TEXT
+- model TEXT
+- year INTEGER
+- registration_number TEXT UNIQUE
+- price_per_day DECIMAL(10,2)
+- description TEXT
+- images TEXT[]
+- is_approved BOOLEAN default FALSE
+- rejection_reason TEXT
+- is_available BOOLEAN default TRUE
+- created_at TIMESTAMP
+Use: Provider fleet, admin approval, customer browsing.
+
+bookings
+Purpose: Stores rental booking requests.
+Fields:
+- id UUID primary key
+- user_id UUID references users(id)
+- vehicle_id UUID references vehicles(id)
+- start_date DATE
+- end_date DATE
+- total_price DECIMAL(10,2)
+- status TEXT default PENDING
+- payment_status TEXT default UNPAID
+- created_at TIMESTAMP
+Use: Booking workflow, provider approval, customer history.
+
+payments
+Purpose: Stores payment records.
+Fields:
+- id UUID primary key
+- booking_id UUID references bookings(id)
+- user_id UUID references users(id)
+- amount DECIMAL(10,2)
+- transaction_id TEXT UNIQUE
+- payment_method TEXT default ESEWA
+- status TEXT default PENDING
+- created_at TIMESTAMP
+Use: eSewa tracking, payment history, admin revenue.
+
+notifications
+Purpose: Stores user notifications.
+Fields:
+- id UUID primary key
+- user_id UUID references users(id)
+- message TEXT
+- is_read BOOLEAN default FALSE
+- type TEXT
+- created_at TIMESTAMP
+Use: KYC, booking, payment, and system updates.
+
+chat_messages
+Purpose: Stores chatbot conversation history.
+Fields:
+- id UUID primary key
+- session_id TEXT
+- user_id UUID references users(id)
+- role TEXT
+- content TEXT
+- intent TEXT
+- language TEXT
+- created_at TIMESTAMP
+Index:
+- idx_chat_messages_session_id
+
+reviews
+Purpose: Stores review and rating data.
+Fields:
+- id UUID primary key
+- booking_id UUID references bookings(id)
+- user_id UUID references users(id)
+- vehicle_id UUID references vehicles(id)
+- rating INTEGER CHECK rating between 1 and 5
+- comment TEXT
+- created_at TIMESTAMP
+Use: Table exists and provider analytics reads average rating, but full review UI/API was not found in current project files.
+
+Separate admins/providers tables:
+Not found in current project files. Roles are stored in users.role.
+
+16. Authentication System
+
+Registration:
+- File: src/app/api/register/route.ts
+- Creates users with role USER or PROVIDER.
+- ADMIN registration is blocked.
+- Password is hashed using bcrypt.hash(password, 10).
+
+Login:
+- File: src/app/api/login/route.ts
+- Looks up user by email or name.
+- Uses bcrypt.compare() against stored hash.
+- Generates JWT on success.
+
+JWT payload:
+- email
+- id
+- role
+
+Token expiry:
+- 1 hour.
+
+Token storage:
+- localStorage key: token
+- localStorage key: user
+- cookie: token
+- cookie: user
+
+Validation:
+- API authorization uses src/app/api/auth/authorization.ts.
+- Token verification uses src/lib/auth.ts and jsonwebtoken.
+- Middleware uses jose jwtVerify.
+
+Logout:
+- Header removes localStorage token/user and clears cookies.
+
+Protected routes:
+- src/middleware.ts protects dashboard routes, admin APIs, provider APIs, user APIs, notifications, profile, login/register redirect behavior.
+
+Role redirection:
+- Authenticated users visiting login/register are redirected to their role dashboard.
+- Users trying to access the wrong dashboard are redirected to their own dashboard.
+
+401 behavior:
+- Missing/invalid token returns 401 for APIs.
+- UI pages redirect to /login.
+
+17. Google OAuth Configuration
+
+Purpose:
+Google OAuth 2.0 allows users to sign in using a Google account.
+
+Package/library:
+No NextAuth package is used. The project manually builds OAuth URL and uses fetch() to call Google token and userinfo endpoints.
+
+Files:
+- src/app/api/auth/google/route.ts
+- src/app/api/auth/google/callback/route.ts
+- src/app/SearchParamHandler.tsx
+- google-auth-setup.md
+
+Environment variables:
+- GOOGLE_CLIENT_ID=your_google_client_id_here
+- GOOGLE_CLIENT_SECRET=your_google_client_secret_here
+- GOOGLE_REDIRECT_URI=http://localhost:3000/api/auth/google/callback
+
+Flow:
+1. User clicks Google login button.
+2. Browser goes to /api/auth/google.
+3. API redirects to Google OAuth consent URL with scope openid email profile.
+4. Google redirects back to /api/auth/google/callback with code.
+5. Callback exchanges code for access token.
+6. Callback fetches Google user profile from Google userinfo endpoint.
+7. System checks if a user with the email already exists.
+8. If not found, it creates a new user with name, email, and profile_picture. Password is null.
+9. If existing user has no profile picture, it updates profile_picture.
+10. System signs JWT with id, email, and role.
+11. User is redirected to / with token and user data in query parameters.
+12. SearchParamHandler stores token/user in localStorage and cookies.
+
+Role behavior:
+- Existing users keep their stored role.
+- New Google users are inserted without role, so the database default role USER applies.
+- Provider Google registration selection is not connected to the callback for new users. This is a codebase limitation.
+
+18. KYC Verification System
+
+Purpose:
+KYC verifies user/provider identity, improves trust, and reduces fraud risk.
+
+Supported document types:
+- Citizenship: found in UI/code notes.
+- License/Driving License: mentioned in docs/features.
+- Passport: mentioned in docs/features.
+- Business Registration: mentioned in schema comments/docs.
+- Vehicle Blue Book: Mentioned in request but not found in current project files.
+
+Files:
+- src/app/api/user/kyc/route.ts
+- src/app/api/provider/kyc/route.ts
+- src/app/api/admin/kyc/route.ts
+- src/lib/ocr.ts
+- src/app/dashboard/user/kyc/page.tsx
+- src/app/dashboard/provider/kyc/page.tsx
+- src/app/dashboard/admin/kyc/page.tsx
+
+Upload process:
+- User/provider uploads document as multipart/form-data.
+- API reads File into Buffer.
+- Buffer is stored in kyc_documents.document_data BYTEA.
+
+Sharp preprocessing:
+Implemented in src/lib/ocr.ts:
+- greyscale(): removes color noise.
+- resize({ width: 2000, withoutEnlargement: false }): increases character resolution.
+- normalize(): improves contrast/dynamic range.
+- sharpen(): improves character edges.
+- threshold(128): converts to black/white for OCR.
+
+Noise reduction:
+No explicit denoise/median blur operation found. Mentioned in request but not found in current project files.
+
+Tesseract.js:
+- createWorker(['eng', 'nep'], 1, logger/options)
+- English and Nepali OCR support is configured.
+- Page segmentation mode is set to 6.
+- OCR text is parsed with regex.
+
+Extracted fields:
+- name
+- idNumber
+- dob
+- address
+- expiryDate
+- rawText
+
+Fuzzy name matching:
+- verifyKYCData() lowercases user and extracted names.
+- Splits registered user name into parts longer than 2 characters.
+- Counts how many name parts appear in extracted name.
+- Approves if matchCount >= Math.min(2, userParts.length).
+
+Automatic approval:
+- If fuzzy name match passes, KYC status becomes APPROVED.
+- If not, document remains PENDING for manual review with rejection_reason explaining OCR failure/name mismatch.
+
+Admin review:
+- Admin can approve/reject KYC through /api/admin/kyc PATCH.
+- Updates kyc_documents.status and users.kyc_status.
+- Stores rejection reason.
+- Creates KYC notification.
+
+KYC gate before booking:
+- /api/user/bookings POST checks users.kyc_status must be APPROVED.
+- /api/bookings POST also checks KYC status.
+
+Document security:
+- KYC documents are stored as BYTEA in PostgreSQL and returned only through protected KYC/admin endpoints.
+- Vehicle images are public uploads, but KYC binary document storage is not directly public.
+- Additional production hardening such as encryption at rest, file type validation, and size limits was not found in current project files.
+
+Tesseract worker singleton:
+- Mentioned in viva prompt but not found in current project files.
+- src/lib/ocr.ts creates a new worker inside extractDataFromImage() and terminates it after each OCR operation.
+- No singleton worker pool/persistent worker implementation was found.
+
+19. Vehicle Management
+
+Provider add/edit/delete files:
+- src/app/dashboard/provider/vehicles/add/page.tsx
+- src/app/dashboard/provider/vehicles/edit/[id]/page.tsx
+- src/app/api/provider/vehicles/route.ts
+- src/app/api/provider/vehicles/[id]/route.ts
+
+Vehicle fields:
+- make
+- model
+- year
+- registration_number
+- price_per_day
+- description
+- images
+- is_available
+- is_approved
+- rejection_reason
+
+Duplicate prevention:
+- vehicles.registration_number is UNIQUE.
+- API catches PostgreSQL error code 23505 and returns conflict.
+
+Approval workflow:
+- Vehicles are created unapproved.
+- Admin approves/rejects using /api/admin/vehicles PATCH.
+- Rejection reason is stored.
+- Provider receives system notification.
+- Provider edits reset is_approved to false and clears rejection_reason.
+
+Customer browsing:
+- /api/user/vehicles returns only approved and available vehicles.
+- /api/vehicles public GET defaults to approved vehicles when no providerId is supplied.
+- Vehicle detail route for users returns vehicle by id.
+
+Search/filter:
+- Search by make, model, description.
+- Min and max price.
+- Date availability filtering.
+- Type filter exists in query but vehicles table does not define a type column. This is a code mismatch and may fail if type is used.
+
+20. Booking Management
+
+Booking creation:
+- Customer selects start date and end date.
+- Frontend calculates/submits totalPrice in /api/user/bookings flow.
+- Shared /api/bookings flow calculates price server-side using price_per_day and inclusive days.
+
+KYC requirement:
+- users.kyc_status must be APPROVED.
+
+Conflict checking:
+- /api/user/bookings checks existing bookings for same vehicle where status is PENDING or APPROVED and date ranges overlap.
+- /api/bookings checks status not in REJECTED and CANCELLED.
+
+Initial status:
+- PENDING.
+
+Payment status:
+- Default UNPAID.
+
+Provider approval:
+- /api/provider/bookings PATCH updates booking status.
+- Customer receives booking notification.
+
+Cancellation:
+- /api/bookings DELETE allows customer to cancel only PENDING bookings and sets status CANCELLED.
+
+Booking statuses:
+- PENDING
+- APPROVED
+- REJECTED
+- COMPLETED
+- CANCELLED
+
+Payment statuses:
+- UNPAID
+- PAID
+- REFUNDED is mentioned in schema comment and docs, but no refund logic was found in current code.
+
+Admin monitoring:
+- /api/admin/bookings GET returns all bookings with customer, vehicle, and provider details.
+
+21. eSewa Payment Integration
+
+Purpose:
+eSewa provides Nepal-focused digital payment support.
+
+Files:
+- src/lib/esewa.ts
+- src/app/api/user/payments/initiate/route.ts
+- src/app/api/payment/success/route.ts
+- src/app/api/payment/failure/route.ts
+- src/app/dashboard/user/payments/[bookingId]/page.tsx
+- src/app/api/user/payments/route.ts
+- src/app/api/admin/payments/route.ts
+
+Environment variables:
+- ESEWA_PRODUCT_CODE=your_esewa_product_code_here
+- ESEWA_SECRET_KEY=your_esewa_secret_key_here
+- ESEWA_API_URL=your_esewa_gateway_url_here
+- ESEWA_SUCCESS_URL=your_success_url_here
+- ESEWA_FAILURE_URL=your_failure_url_here
+
+Sandbox vs production:
+- Defaults use eSewa test values and rc-epay URL.
+- Production requires live merchant product code, secret key, gateway URL, and callback URLs.
+
+Payment initiation flow:
+1. Customer opens payment page for a booking.
+2. Frontend fetches booking from /api/user/bookings.
+3. Customer clicks Pay with eSewa.
+4. Frontend posts bookingId and amount to /api/user/payments/initiate.
+5. API requires USER role.
+6. API creates transaction_uuid as ESEWA-bookingId-timestamp.
+7. Amount is normalized using Number(amount).toString().
+8. Signature data is:
+   total_amount=amount,transaction_uuid=transactionUuid,product_code=productCode
+9. generateEsewaSignature() creates HMAC SHA-256 using ESEWA_SECRET_KEY and base64 digest.
+10. A pending payment row is inserted.
+11. API returns fields required by eSewa.
+12. Frontend dynamically creates a form and posts it to eSewa.
+
+Signed fields:
+- total_amount
+- transaction_uuid
+- product_code
+
+Returned payment fields:
+- amount
+- tax_amount
+- total_amount
+- transaction_uuid
+- product_code
+- product_service_charge
+- product_delivery_charge
+- success_url
+- failure_url
+- signed_field_names
+- signature
+- esewa_url
+
+Success callback:
+- /api/payment/success reads base64 data query parameter.
+- Decodes JSON.
+- If status is COMPLETE:
+  - Updates payment status to SUCCESS.
+  - Replaces transaction_id with eSewa transaction_code.
+  - Updates booking payment_status to PAID.
+  - Inserts payment notification for user.
+  - Redirects to /dashboard/user/bookings?status=success.
+
+Failure callback:
+- /api/payment/failure redirects to /dashboard/user/bookings?status=failed.
+
+Payment verification:
+- Basic success callback data status check is implemented.
+- Server-side verification against eSewa transaction verification API was not found in current project files.
+
+Booking must be approved:
+- UI flow expects payment after approval.
+- /api/user/payments/initiate does not verify that the booking belongs to the user, is APPROVED, or is UNPAID. This is a security/business-rule gap in current code.
+
+Common signature mismatch causes:
+- Amount formatting mismatch.
+- Wrong product code.
+- Wrong secret key.
+- Signed field order mismatch.
+- Success/failure URL mismatch.
+- Sandbox vs production credentials mixed.
+
+22. Admin Dashboard
+
+Files:
+- src/app/dashboard/admin/page.tsx
+- src/app/dashboard/admin/users/page.tsx
+- src/app/dashboard/admin/providers/page.tsx
+- src/app/dashboard/admin/kyc/page.tsx
+- src/app/dashboard/admin/vehicles/page.tsx
+- src/app/dashboard/admin/bookings/page.tsx
+- src/app/dashboard/admin/payments/page.tsx
+- src/app/api/admin/*
+
+Admin authentication:
+- Admin role is ADMIN.
+- Admin user is seeded in ensureTablesExist() from ADMIN_EMAIL and ADMIN_PASSWORD.
+- Admin dashboard route: /dashboard/admin.
+- Middleware allows only ADMIN.
+
+Dashboard statistics:
+- Total users.
+- Total providers.
+- Total bookings.
+- Total revenue from successful payments.
+- Pending KYC count.
+- Pending vehicle approval count.
+
+Management:
+- Users list.
+- Providers list.
+- KYC review/approve/reject.
+- Vehicle approve/reject.
+- Bookings monitor.
+- Payments monitor.
+- Rejection reason handling for KYC and vehicles.
+
+Reports:
+- Admin page has a Reports button, but report export logic was not found in current project files.
+
+23. Provider Dashboard
+
+Files:
+- src/app/dashboard/provider/page.tsx
+- src/app/dashboard/provider/vehicles/page.tsx
+- src/app/dashboard/provider/vehicles/add/page.tsx
+- src/app/dashboard/provider/vehicles/edit/[id]/page.tsx
+- src/app/dashboard/provider/bookings/page.tsx
+- src/app/dashboard/provider/kyc/page.tsx
+- src/components/PerformanceAnalytics.tsx
+- src/app/api/provider/*
+
+Provider features:
+- Provider registration/login.
+- Provider KYC upload.
+- Fleet management.
+- Add/edit/delete vehicle.
+- Booking request handling.
+- Approve/reject booking.
+- Receive notifications.
+- View analytics dashboard.
+
+Analytics:
+- Revenue trend chart.
+- Booking volume chart.
+- Top 5 vehicles chart.
+- Fleet availability chart.
+- Total earnings and monthly earnings.
+- Average rating from reviews table.
+- Top vehicle.
+- Uses Recharts.
+
+Export:
+- Export Report button exists in UI, but export implementation was not found.
+
+24. Customer Dashboard
+
+Files:
+- src/app/dashboard/user/page.tsx
+- src/app/dashboard/user/vehicles/page.tsx
+- src/app/dashboard/user/vehicles/[id]/page.tsx
+- src/app/dashboard/user/bookings/page.tsx
+- src/app/dashboard/user/kyc/page.tsx
+- src/app/dashboard/user/payments/page.tsx
+- src/app/dashboard/user/payments/[bookingId]/page.tsx
+
+Customer features:
+- Register/login.
+- Google OAuth.
+- KYC upload and status view.
+- Browse approved vehicles.
+- View vehicle details.
+- Create booking requests.
+- View My Bookings.
+- Cancel pending booking through shared /api/bookings DELETE.
+- Pay with eSewa.
+- View payment history.
+- Receive notifications.
+- Use chatbot support.
+
+25. Notification System
+
+Files:
+- src/app/api/notifications/route.ts
+- src/components/Header.tsx
+
+Notification events:
+- KYC approved/rejected by admin.
+- Vehicle approved/rejected by admin.
+- New booking request sent to provider.
+- Booking approved/rejected by provider/admin.
+- Booking cancelled by user.
+- Payment successful.
+
+Fields:
+- message
+- type
+- is_read
+- created_at
+
+Fetch/update:
+- GET /api/notifications returns latest 50 notifications for authenticated user.
+- PATCH /api/notifications marks one notification or all notifications as read.
+
+Delivery method:
+- Header polls every 30 seconds.
+- WebSocket or server-sent events were not found.
+
+26. Rule-Based Chatbot / Customer Support
+
+Files:
+- src/components/Chatbot.tsx
+- src/components/ChatbotWrapper.tsx
+- src/app/api/chat/route.ts
+
+Purpose:
+Provides quick support for common questions.
+
+Implementation:
+- Rule-based local response logic.
+- Stores session ID in localStorage.
+- Stores messages in chat_messages table.
+- Supports guests and authenticated users.
+- Can clear chat history.
+
+Supported intents:
+- Booking help.
+- Payment support.
+- KYC guidance.
+- Account issue.
+- Vehicle availability.
+- General fallback.
+
+Limitation:
+The chatbot is not an AI language model in the current code. features_and_development.txt says "AI-powered or session-based Chat Support", but the code implements rule-based responses. This is a report/code mismatch.
+
+27. API Endpoints
+
+Authentication:
+- POST /api/register: Public. Body email, password, name, role. Creates USER/PROVIDER. Table users.
+- POST /api/login: Public. Body email, password. Returns JWT and user. Table users.
+- GET /api/auth/google: Public. Redirects to Google OAuth.
+- GET /api/auth/google/callback: Public callback. Creates/fetches Google user and returns JWT through redirect. Table users.
+
+Profile/password:
+- GET /api/user/profile: Authenticated. USER/PROVIDER/ADMIN through token. Returns profile. Table users.
+- PATCH /api/user/profile: Authenticated. Updates name/avatar. Table users.
+- POST /api/user/password: Authenticated. Updates password using bcrypt. Table users.
+
+KYC:
+- POST /api/user/kyc: USER/PROVIDER. Multipart documentType/file. OCR and stores document. Tables kyc_documents, users.
+- GET /api/user/kyc: USER/PROVIDER. Returns own KYC status/documents. Tables kyc_documents, users.
+- POST /api/provider/kyc: PROVIDER/USER allowed by code. Same KYC upload. Tables kyc_documents, users.
+- GET /api/provider/kyc: PROVIDER/USER allowed by code. Returns KYC status/documents.
+- POST /api/kyc: Authenticated. JSON document_type/document_url legacy/simple KYC upload. Table kyc_documents.
+- GET /api/kyc: Authenticated. Returns own KYC documents.
+- GET /api/admin/kyc: ADMIN. Lists all KYC documents. Tables kyc_documents, users.
+- PATCH /api/admin/kyc: ADMIN. Body id, status, rejection_reason, user_id. Updates KYC and user status. Tables kyc_documents, users, notifications.
+
+Vehicles:
+- GET /api/user/vehicles: USER. Query search, minPrice, maxPrice, startDate, endDate, type. Returns approved/available vehicles. Table vehicles/bookings.
+- GET /api/user/vehicles/[id]: USER. Returns vehicle detail. Table vehicles.
+- GET /api/provider/vehicles: PROVIDER. Returns provider vehicles. Table vehicles.
+- POST /api/provider/vehicles: PROVIDER. Creates vehicle. Table vehicles.
+- GET /api/provider/vehicles/[id]: PROVIDER. Returns own vehicle.
+- PUT /api/provider/vehicles/[id]: PROVIDER. Updates own vehicle and resets approval.
+- DELETE /api/provider/vehicles/[id]: PROVIDER. Deletes own vehicle.
+- GET /api/vehicles: Public by code. Optional providerId/isApproved. Lists vehicles. Table vehicles.
+- POST /api/vehicles: PROVIDER. Alternate vehicle create route. Table vehicles.
+- GET /api/admin/vehicles: ADMIN. Lists all vehicles with provider details.
+- PATCH /api/admin/vehicles: ADMIN. Approves/rejects vehicle. Tables vehicles, notifications.
+
+Bookings:
+- POST /api/user/bookings: USER. Body vehicleId, startDate, endDate, totalPrice. Creates PENDING booking after KYC/conflict check. Tables bookings, users, notifications.
+- GET /api/user/bookings: USER. Returns own bookings. Tables bookings, vehicles.
+- POST /api/bookings: Authenticated. Creates booking using vehicle_id/start_date/end_date and server price calculation. Tables bookings, vehicles, users, notifications.
+- GET /api/bookings: USER/PROVIDER/ADMIN behavior based on role. Returns relevant bookings.
+- PATCH /api/bookings: Provider owner or ADMIN. Updates booking status. Tables bookings, notifications.
+- DELETE /api/bookings: USER owner. Cancels PENDING booking. Tables bookings, notifications.
+- GET /api/provider/bookings: PROVIDER. Lists bookings for provider vehicles.
+- PATCH /api/provider/bookings: PROVIDER. Approves/rejects booking. Tables bookings, notifications.
+- GET /api/admin/bookings: ADMIN. Lists all bookings.
+
+Payments:
+- POST /api/user/payments/initiate: USER. Body bookingId, amount. Creates eSewa signature and PENDING payment. Table payments.
+- GET /api/user/payments: Authenticated. Returns own payment history. Tables payments, bookings, vehicles.
+- GET /api/payment/success: Public eSewa callback. Updates payment/booking and redirects. Tables payments, bookings, notifications.
+- GET /api/payment/failure: Public eSewa callback. Redirects to failed status.
+- POST /api/payments: Authenticated. Manual payment success route. Tables payments, bookings, vehicles, notifications.
+- GET /api/payments: USER or ADMIN. Returns payment data.
+- GET /api/admin/payments: ADMIN. Lists all payments.
+
+Notifications:
+- GET /api/notifications: Authenticated. Returns latest notifications. Table notifications.
+- PATCH /api/notifications: Authenticated. Marks one/all as read. Table notifications.
+
+Admin stats:
+- GET /api/admin/stats: ADMIN. Returns counts/revenue. Tables users, bookings, payments, vehicles.
+- GET /api/admin/users: ADMIN. Lists users.
+- GET /api/admin/providers: ADMIN. Lists providers.
+
+Provider analytics:
+- GET /api/provider/analytics: PROVIDER. Query range/startDate/endDate. Returns summary, top vehicle, monthly trends, availability, most booked. Tables vehicles, bookings, reviews.
+
+Chatbot:
+- POST /api/chat: Public/auth optional. Body message, sessionId. Returns rule-based response. Table chat_messages.
+- GET /api/chat?sessionId=...: Public. Returns chat history.
+- DELETE /api/chat?sessionId=...: Public. Deletes chat history.
+
+Upload:
+- POST /api/upload: Public by code. Multipart file. Writes to public/uploads and returns URL. No authentication check found.
+
+28. Environment Variables
+
+Actual variables found in .env/config code. Real values are intentionally not included.
+
+DATABASE_URL=your_postgresql_connection_string_here
+JWT_SECRET=your_jwt_secret_here
+ADMIN_EMAIL=your_admin_email_here
+ADMIN_PASSWORD=your_admin_password_here
+NEXT_PUBLIC_APP_URL=your_app_url_here
+ESEWA_PRODUCT_CODE=your_esewa_product_code_here
+ESEWA_SECRET_KEY=your_esewa_secret_key_here
+ESEWA_API_URL=your_esewa_gateway_url_here
+ESEWA_SUCCESS_URL=your_esewa_success_callback_url_here
+ESEWA_FAILURE_URL=your_esewa_failure_callback_url_here
+ADMIN_ESEWA_NUMBER=your_admin_esewa_number_here
+GOOGLE_CLIENT_ID=your_google_client_id_here
+GOOGLE_CLIENT_SECRET=your_google_client_secret_here
+GOOGLE_REDIRECT_URI=http://localhost:3000/api/auth/google/callback
+OPENAI_API_KEY=your_openai_api_key_here
+
+Notes:
+- OPENAI_API_KEY is present in config but current chatbot code does not call OpenAI.
+- NEXT_PUBLIC_API_URL was requested but not found in current project files.
+- ESEWA_GATEWAY_URL was requested, but the actual variable used is ESEWA_API_URL.
+
+29. How to Configure Google OAuth
+
+1. Go to Google Cloud Console.
+2. Create or select a project.
+3. Configure OAuth consent screen.
+4. Add scopes: openid, email, profile.
+5. Create OAuth Client ID for Web application.
+6. Add authorized JavaScript origin:
+   http://localhost:3000
+7. Add authorized redirect URI:
+   http://localhost:3000/api/auth/google/callback
+8. Add values to .env:
+   GOOGLE_CLIENT_ID=your_google_client_id_here
+   GOOGLE_CLIENT_SECRET=your_google_client_secret_here
+   GOOGLE_REDIRECT_URI=http://localhost:3000/api/auth/google/callback
+9. Restart the development server.
+10. Test using "Continue with Google" on login/register page.
+
+30. How to Configure eSewa
+
+1. Use sandbox credentials for testing.
+2. Set product code:
+   ESEWA_PRODUCT_CODE=your_esewa_product_code_here
+3. Set secret key:
+   ESEWA_SECRET_KEY=your_esewa_secret_key_here
+4. Set gateway URL:
+   ESEWA_API_URL=your_esewa_gateway_url_here
+5. Set callback URLs:
+   ESEWA_SUCCESS_URL=http://localhost:3000/api/payment/success
+   ESEWA_FAILURE_URL=http://localhost:3000/api/payment/failure
+6. Start the app.
+7. Create a booking.
+8. Approve the booking as provider/admin.
+9. Open payment page and click Pay with eSewa.
+10. Complete sandbox payment.
+11. Confirm payment status updates to SUCCESS and booking payment_status becomes PAID.
+
+Production requires real eSewa merchant credentials and production callback URLs.
+
+31. How to Configure Admin
+
+Admin is seeded automatically in src/lib/db.ts during ensureTablesExist().
+
+Configuration:
+- ADMIN_EMAIL=your_admin_email_here
+- ADMIN_PASSWORD=your_admin_password_here
+
+Admin role:
+- ADMIN
+
+Flow:
+1. Server calls ensureTablesExist() during login/register/OAuth/KYC/chat/notifications.
+2. If admin email does not exist, system hashes admin password with bcrypt salt rounds 10.
+3. Inserts Admin User with role ADMIN.
+4. Admin logs in from /login.
+5. Middleware redirects admin to /dashboard/admin.
+
+Admin permissions:
+- View platform statistics.
+- Manage users/providers.
+- Review KYC.
+- Approve/reject vehicles.
+- View bookings.
+- View payments.
+
+32. How to Run the Project Locally
+
+1. Install Node.js.
+2. Open the project in Visual Studio Code or terminal.
+3. Install dependencies:
+   npm install
+4. Set up PostgreSQL locally or use a hosted PostgreSQL database.
+5. Create a database.
+6. Configure .env:
+   DATABASE_URL=your_postgresql_connection_string_here
+   JWT_SECRET=your_jwt_secret_here
+   ADMIN_EMAIL=your_admin_email_here
+   ADMIN_PASSWORD=your_admin_password_here
+   GOOGLE_CLIENT_ID=your_google_client_id_here
+   GOOGLE_CLIENT_SECRET=your_google_client_secret_here
+   GOOGLE_REDIRECT_URI=http://localhost:3000/api/auth/google/callback
+   ESEWA_PRODUCT_CODE=your_esewa_product_code_here
+   ESEWA_SECRET_KEY=your_esewa_secret_key_here
+   ESEWA_API_URL=your_esewa_gateway_url_here
+   ESEWA_SUCCESS_URL=http://localhost:3000/api/payment/success
+   ESEWA_FAILURE_URL=http://localhost:3000/api/payment/failure
+7. Run the dev server:
+   npm run dev
+8. Open:
+   http://localhost:3000
+9. Register customer and provider accounts.
+10. Login as admin using seeded admin credentials.
+11. Test KYC upload.
+12. Test provider vehicle listing.
+13. Approve vehicle as admin.
+14. Browse vehicle as customer.
+15. Create booking.
+16. Approve booking as provider.
+17. Test eSewa sandbox payment.
+18. Test Google OAuth login.
+
+No separate migration file was found. Tables are created automatically in src/lib/db.ts.
+
+33. Testing Guide
+
+Manual test cases:
+- Register new USER.
+- Register new PROVIDER.
+- Try duplicate email registration; expect 409.
+- Try ADMIN registration; expect 403.
+- Login with correct credentials; expect JWT and role dashboard.
+- Login with wrong credentials; expect 401.
+- Test Google OAuth login; expect user creation/login and token storage.
+- Upload KYC document; expect OCR attempt and status APPROVED or PENDING.
+- Admin approve KYC; expect user kyc_status APPROVED and notification.
+- Admin reject KYC with reason; expect REJECTED and notification.
+- Provider adds vehicle; expect pending approval.
+- Duplicate vehicle registration number; expect conflict.
+- Admin approves vehicle; expect visible to customers.
+- Admin rejects vehicle; expect rejection reason and notification.
+- Customer browses vehicle.
+- Customer attempts booking without approved KYC; expect 403.
+- Customer books approved vehicle with available dates.
+- Try overlapping booking; expect 409.
+- Provider approves booking; expect customer notification.
+- Provider rejects booking; expect customer notification.
+- Customer cancels pending booking; expect status CANCELLED.
+- Customer pays through eSewa; expect pending payment then success callback.
+- Payment success callback; expect payment SUCCESS and booking PAID.
+- Payment failure callback; expect failed redirect.
+- Admin views revenue.
+- Unauthorized dashboard access; expect redirect.
+- Unauthorized API access; expect 401 or 403.
+- Notification received and marked read.
+- SQL injection prevention: parameterized queries are used in most routes; provider analytics custom date filter is built with string interpolation and should be hardened.
+
+34. Security Features
+
+Implemented:
+- bcrypt password hashing with salt rounds 10.
+- JWT authentication with 1 hour expiry.
+- Middleware route protection.
+- API role checks using authorizeRole().
+- KYC verification before booking.
+- Admin approval for KYC and vehicles.
+- Server-side eSewa signature generation.
+- Environment variables for secrets.
+- PostgreSQL parameterized queries in most APIs.
+- KYC documents stored in database instead of public uploads in OCR flow.
+- Vehicle registration number unique constraint.
+- Double-booking prevention.
+
+Security gaps/limitations found:
+- JWT secret has fallback default in code; production should require a strong environment secret.
+- /api/upload has no authentication, file type validation, or size limit.
+- eSewa success callback does not verify transaction with eSewa verification API.
+- /api/user/payments/initiate does not verify booking ownership/status/payment_status.
+- Google OAuth sends JWT in URL query parameter before SearchParamHandler stores it.
+- Provider analytics custom date filter uses string interpolation; should be parameterized.
+- KYC document encryption at rest was not found.
+- CSRF protection was not found.
+- Rate limiting was not found.
+- HTTPS is required in production.
+
+OWASP Top 10 evaluation:
+- Broken access control: mitigated by middleware and role checks, but upload/payment initiation need hardening.
+- Cryptographic failures: bcrypt and env variables help; production secrets must not use defaults.
+- Injection: parameterized SQL mostly used; one analytics custom date filter needs improvement.
+- Insecure design: admin approvals and KYC reduce fraud; payment verification should be stronger.
+- Security misconfiguration: avoid default secrets and ensure HTTPS.
+- Vulnerable components: keep npm packages updated.
+- Identification/authentication failures: JWT, bcrypt, middleware help.
+- Software/data integrity failures: no CI/package integrity process found.
+- Logging/monitoring failures: console logs exist but production monitoring not found.
+- SSRF: no major SSRF feature found, but external OAuth/eSewa calls should be controlled.
+
+35. Error Handling
+
+Implemented examples:
+- Frontend validation for required forms, password match, image presence, year, and price.
+- Backend try/catch blocks return JSON error responses.
+- Invalid registration returns 400/403/409.
+- Invalid login returns 401.
+- Missing JWT returns 401.
+- Forbidden role returns 403.
+- Vehicle not found returns 404.
+- Booking conflict returns 409.
+- KYC upload OCR errors are caught and document can remain pending.
+- eSewa failure redirects to bookings page with failed status.
+- Admin UI requires rejection reason before reject actions.
+- Database connection errors in db.ts log details and handle ENOTFOUND.
+- Schema mismatch error 42804 attempts to drop/recreate users table. This is risky for production and should be avoided outside development.
+
+36. Important Packages / Dependencies
+
+From package.json:
+- next: Next.js framework.
+- react, react-dom: UI rendering.
+- typescript: Type safety.
+- tailwindcss and @tailwindcss/postcss: Styling.
+- pg and @types/pg: PostgreSQL database access.
+- bcrypt and @types/bcrypt: Password hashing.
+- jsonwebtoken and @types/jsonwebtoken: JWT in APIs.
+- jose: JWT verification in middleware.
+- tesseract.js: OCR.
+- sharp: Image preprocessing.
+- recharts: Charts.
+- lucide-react: Icons.
+- sonner: Toast messages.
+- radix-ui and @radix-ui/react-label/@radix-ui/react-slot: UI primitives.
+- next-themes: Theme switching.
+- uuid and @types/uuid: Unique IDs for uploads/chat sessions.
+- date-fns: Date utility package.
+- class-variance-authority, clsx, tailwind-merge: Styling/class helpers.
+- tw-animate-css: Animation utilities.
+- eslint, eslint-config-next: Linting.
+
+Google OAuth package:
+- No dedicated Google OAuth package found. OAuth is implemented manually through URLs and fetch().
+
+File upload package:
+- No multer/formidable package found. Upload uses NextRequest.formData(), File.arrayBuffer(), fs/promises writeFile, and uuid.
+
+Validation package:
+- No zod/yup validation package found. Validation is manual.
+
+37. Limitations
+
+Limitations found in report/code:
+- eSewa production requires live merchant credentials.
+- OCR accuracy depends on uploaded image quality and document layout.
+- Rule-based chatbot is not an AI language model.
+- Map-based search/geolocation not implemented.
+- Real-time notifications use polling, not WebSocket.
+- Admin report export to PDF/Excel not implemented.
+- Provider analytics export button has no export logic.
+- Review table exists, but full review UI/API is not implemented.
+- Refund workflow not implemented.
+- Vehicle type filter references v.type, but the vehicles table has no type column.
+- Google OAuth new users default to USER role.
+- Tesseract singleton worker pattern is not implemented.
+- File upload security controls are limited.
+- Payment verification with eSewa verification endpoint is not implemented.
+- Some docs mention AI-powered support, but code is rule-based.
+
+38. Future Scope
+
+Possible improvements:
+- Real-time analytics dashboard improvements.
+- Multi-language support in Nepali and English across the UI.
+- Map-based vehicle location search.
+- More payment gateways such as Khalti and ConnectIPS.
+- More vehicle categories and attributes.
+- Wider city coverage.
+- WebSocket real-time notifications.
+- PDF/Excel admin report export.
+- Mobile app version.
+- Advanced search and filtering by location, type, seats, fuel, transmission, and price.
+- Full review and rating system.
+- Provider payout management.
+- Refund and cancellation policy automation.
+- Invoice generation.
+- Better OCR templates for Nepali citizenship/license documents.
+- AI-powered chatbot using an actual LLM if required.
+- Stronger payment verification and audit logs.
+
+39. Methodology Note
+
+No formal methodology chapter/report was found in current project files. The user's viva instructions mention Kanban. If a separate report mentions both Scrum and Kanban, the final documentation should explain the inconsistency politely:
+- Scrum may be mentioned in the methodology chapter.
+- Kanban may be mentioned in the abstract/evaluation.
+- The safest final wording is: "An Agile approach was followed with Kanban/Scrum-inspired practices."
+- Do not claim only one method if project documents show both.
+
+In current project files, no actual Kanban board, Scrum sprint log, or methodology evidence file was found.
+
+40. AI/OCR Clarification
+
+The system uses OCR-based document processing using Tesseract.js.
+OCR is used for text extraction from uploaded KYC document images.
+Sharp is used to preprocess images before OCR.
+The chatbot is rule-based and uses predefined response matching.
+The project does not implement a machine learning model or AI language model in the current code.
+OPENAI_API_KEY exists in config, but no OpenAI API call was found in the chatbot route.
+Do not exaggerate AI claims in viva. Say: "The project uses OCR automation and a rule-based support chatbot."
+
+41. Diagrams and Documentation Included in Report
+
+Formal report files were not found in current workspace, so the following are not available in current project files:
+- Functional Decomposition Diagram: Not found in current project files.
+- Work Breakdown Structure: Not found in current project files.
+- ERD: Not found in current project files, but schema exists in src/lib/db.ts.
+- Use Case Diagram: Not found in current project files.
+- Activity Diagram: Not found in current project files.
+- Sequence Diagram: Not found in current project files.
+- Gantt Chart: Not found in current project files.
+- Git Logs: Not available because Git status is blocked by safe-directory ownership in sandbox.
+- User Manual: Not found in current project files.
+- Customer Quick Start Guide: Not found as separate file; dashboard includes quick start UI.
+- Provider Quick Start Guide: Not found as separate file; provider dashboard includes guidelines UI.
+- Admin Guide: Not found as separate file.
+- Feasibility Analysis: Not found in current project files.
+
+Mentioned in report but not found in current project files:
+No formal report was found. If these diagrams exist outside this workspace, add them separately to final submission.
+
+42. Report vs Codebase Differences
+
+Features found in both report notes and code:
+- Multi-role system: USER, PROVIDER, ADMIN.
+- Next.js App Router.
+- PostgreSQL.
+- JWT authentication.
+- bcrypt hashing.
+- Google OAuth.
+- KYC with Tesseract.js and Sharp.
+- Vehicle management.
+- Admin vehicle approval.
+- Booking workflow.
+- eSewa payment initiation.
+- Notifications.
+- Provider analytics using Recharts.
+- Rule/session-based chatbot.
+
+Features mentioned in report notes but not fully found in code:
+- AI-powered chatbot: report note says AI-powered or session-based, but code is rule-based.
+- Export report button: UI exists, export logic not found.
+- Payment status REFUNDED: schema comment mentions it, refund logic not found.
+- Full review system: reviews table exists, but review UI/API not found.
+- Noise reduction in Sharp: no explicit denoise operation found.
+- Full production payment verification: not found.
+
+Features found in project codebase but not strongly emphasized in report notes:
+- chat_messages table with session history.
+- profile update with avatar support.
+- password update endpoint.
+- legacy/shared APIs such as /api/kyc, /api/bookings, /api/payments, and /api/vehicles in addition to role-specific APIs.
+- OpenAI config key exists but is unused.
+
+Naming differences:
+- Code uses role USER, while documentation often calls this role Customer.
+- "Provider" means vehicle owner/rental business.
+- "Admin" is stored as ADMIN in users.role, not in a separate admin table.
+
+Stack mismatch:
+- User request asked to include Next.js 14, but package.json uses Next.js 15.3.3.
+- The code uses Next.js API routes, not Express.
+- The database is PostgreSQL, not MongoDB.
+
+Methodology mismatch:
+- Current project files do not contain a methodology chapter.
+- If external report mentions Scrum and Kanban, document it as Agile with Kanban/Scrum-inspired practices.
+
+Security/business-rule mismatches:
+- UI implies payment after booking approval, but /api/user/payments/initiate does not enforce booking ownership/status/payment_status.
+- /api/upload is unauthenticated.
+- Type filter exists in /api/user/vehicles but vehicles table has no type column.
+- Tesseract singleton worker pattern is not implemented; each OCR call creates and terminates a worker.
+
+43. How to Explain This Project in Viva
+
+1-minute explanation:
+Secure Drives is a full-stack online vehicle rental platform for Nepal. It connects customers with vehicle providers through a secure digital system. Customers can register, complete KYC, browse approved vehicles, book vehicles, and pay through eSewa. Providers can list vehicles, manage booking requests, and view analytics. Admins manage users, KYC, vehicle approvals, bookings, payments, and platform statistics. The system uses Next.js, React, TypeScript, PostgreSQL, JWT, bcrypt, Google OAuth, Tesseract.js, Sharp, and eSewa.
+
+3-minute explanation:
+Secure Drives digitizes the manual vehicle rental process. Instead of phone calls, paper records, and cash payment, the platform provides role-based dashboards for customers, providers, and admins. The authentication system uses bcrypt for password hashing and JWT for sessions. KYC documents are uploaded and processed with Sharp and Tesseract.js to extract text, then the system performs fuzzy name matching. If OCR is uncertain, admin manually reviews documents. Providers add vehicles, but vehicles must be approved by admin before customers can see them. Customers can book only after KYC approval. The booking system checks date overlaps to prevent double-booking. Once a booking is approved, the customer can pay through eSewa. Payments, notifications, and analytics are stored in PostgreSQL and shown in dashboards.
+
+Technical explanation:
+The project uses a unified Next.js App Router codebase. Frontend pages are under src/app and reusable components are under src/components. Backend APIs are under src/app/api. PostgreSQL is connected using pg Pool in src/lib/db.ts. Authentication helpers are in src/lib/auth.ts and src/app/api/auth/authorization.ts. Middleware in src/middleware.ts protects dashboard and API routes. eSewa signature generation is in src/lib/esewa.ts. OCR logic is in src/lib/ocr.ts.
+
+Database explanation:
+The database is PostgreSQL. It has users, kyc_documents, vehicles, bookings, payments, notifications, chat_messages, and reviews tables. Foreign keys connect bookings to users and vehicles, vehicles to providers, payments to bookings/users, and KYC/notifications to users.
+
+eSewa explanation:
+The eSewa integration creates a transaction UUID, prepares signed fields total_amount, transaction_uuid, and product_code, signs them with HMAC SHA-256 using the eSewa secret key, stores a pending payment, and sends the user to eSewa using a form. The success callback decodes eSewa response data, updates payment status to SUCCESS, updates booking payment_status to PAID, and creates a payment notification.
+
+Google OAuth explanation:
+The app redirects users to Google with openid email profile scope. Google returns a code to /api/auth/google/callback. The backend exchanges the code for an access token, fetches user info, creates or updates the user, signs a JWT, and redirects back with token data. SearchParamHandler stores the token in localStorage and cookies.
+
+KYC explanation:
+Users/providers upload document images. The server reads the file buffer, preprocesses it with Sharp, extracts text with Tesseract.js using English and Nepali, parses fields like name and ID number, and compares the extracted name with the registered user name. If it matches, KYC is approved automatically. Otherwise, it stays pending for admin manual review.
+
+Admin explanation:
+Admin is seeded from ADMIN_EMAIL and ADMIN_PASSWORD. Admin can view statistics, users, providers, KYC documents, vehicles, bookings, and payments. Admin approves/rejects KYC and vehicles and sends notifications.
+
+Security explanation:
+Security is handled through bcrypt, JWT, middleware, role-based API checks, KYC gating, vehicle approval, parameterized queries, and server-side eSewa signature generation. Limitations include missing rate limiting, limited upload validation, and no production-grade eSewa verification endpoint.
+
+44. Common Viva Questions and Answers
+
+Q: Why did you choose this project?
+A: Vehicle rental in Nepal is still often manual, phone-based, and cash-based. This project solves a practical local problem using a secure digital platform.
+
+Q: What problem does it solve?
+A: It reduces manual booking, double-booking, poor record keeping, fraud risk, weak identity verification, and payment tracking problems.
+
+Q: Why PostgreSQL?
+A: The system has relational data: users, providers, vehicles, bookings, payments, KYC, and notifications. PostgreSQL supports foreign keys, transactions, constraints, and reliable structured queries.
+
+Q: Why Next.js?
+A: Next.js supports both frontend pages and backend API routes in one project. It is suitable for a full-stack web app with dashboards and APIs.
+
+Q: Why TypeScript?
+A: TypeScript improves code safety by catching type errors during development and making data structures easier to understand.
+
+Q: Why JWT?
+A: JWT allows stateless authentication. The token stores user id, email, and role, so APIs and middleware can identify and authorize users.
+
+Q: Why bcrypt?
+A: bcrypt securely hashes passwords with salt. The project uses salt rounds 10, which is a common balance between security and performance for development-level applications.
+
+Q: How does Google OAuth work?
+A: The user is redirected to Google, Google returns an authorization code, the backend exchanges it for an access token, fetches profile data, creates or updates the user, creates a JWT, and redirects the user back to the app.
+
+Q: How does eSewa integration work?
+A: The backend creates payment data and signs selected fields using HMAC SHA-256 with the eSewa secret key. The frontend submits a form to eSewa. On success, the callback updates payment and booking status.
+
+Q: How do you prevent double booking?
+A: Before creating a booking, the API checks existing bookings for the same vehicle where status is PENDING or APPROVED and where date ranges overlap. If a conflict exists, it returns 409.
+
+Q: How does KYC verification work?
+A: A document image is uploaded, preprocessed with Sharp, read with Tesseract OCR, parsed for fields, and compared with the registered name. If the match is strong, it is auto-approved; otherwise admin reviews it.
+
+Q: Is OCR an AI feature?
+A: It is OCR-based automation using Tesseract.js. It extracts text from images. The project does not train a machine learning model or use an AI language model in current code.
+
+Q: What are the main security features?
+A: bcrypt password hashing, JWT authentication, middleware protection, role-based access control, KYC verification, vehicle approval, double-booking prevention, parameterized queries, and server-side eSewa signature generation.
+
+Q: What are the limitations?
+A: OCR depends on image quality, chatbot is rule-based, real-time notifications use polling, production eSewa verification needs improvement, map search is missing, report export is missing, and upload validation should be stronger.
+
+Q: What would you improve in the future?
+A: Add WebSocket notifications, mobile app, map search, Khalti/ConnectIPS, stronger payment verification, PDF/Excel reports, review UI, refund workflow, better OCR templates, and advanced filters.
+
+45. Conclusion
+
+Secure Drives is a complete full-stack online vehicle rental system for Nepal. It includes multi-role authentication, KYC verification, provider vehicle management, booking workflow, eSewa payment processing, admin monitoring, notifications, provider analytics, chatbot support, and secure API/database integration. The system is practical for Nepal because it supports digital booking, eSewa payments, identity verification, and centralized vehicle rental management. The current codebase is strong for a final year project, while future improvements can make it more production-ready.
